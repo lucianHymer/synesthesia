@@ -58,13 +58,13 @@ export function createRoutes(notificationService: NotificationService, patternLi
     try {
       const pattern: PatternWithMetadata = req.body;
       
-      if (!pattern.metadata?.id || !pattern.animation) {
+      if (!pattern.id || !pattern.animation) {
         return res.status(400).json({ 
-          error: 'pattern must have metadata.id and animation' 
+          error: 'pattern must have id and animation' 
         });
       }
 
-      if (patternLibrary.getPattern(pattern.metadata.id)) {
+      if (patternLibrary.getPattern(pattern.id)) {
         return res.status(409).json({ 
           error: 'pattern_already_exists' 
         });
@@ -74,7 +74,7 @@ export function createRoutes(notificationService: NotificationService, patternLi
       pattern.metadata.usage_count = 0;
       
       patternLibrary.addPattern(pattern);
-      res.status(201).json({ id: pattern.metadata.id });
+      res.status(201).json({ id: pattern.id });
     } catch (error) {
       logger.error('Create pattern error:', error);
       res.status(500).json({ error: 'internal_server_error' });
@@ -86,13 +86,13 @@ export function createRoutes(notificationService: NotificationService, patternLi
       const id = req.params.id;
       const pattern: PatternWithMetadata = req.body;
       
-      if (!pattern.metadata?.id || !pattern.animation) {
+      if (!pattern.id || !pattern.animation) {
         return res.status(400).json({ 
-          error: 'pattern must have metadata.id and animation' 
+          error: 'pattern must have id and animation' 
         });
       }
 
-      if (pattern.metadata.id !== id) {
+      if (pattern.id !== id) {
         return res.status(400).json({ 
           error: 'pattern id mismatch' 
         });

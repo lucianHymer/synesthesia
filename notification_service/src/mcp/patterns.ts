@@ -29,7 +29,7 @@ export async function selectPattern(text: string): Promise<PatternSelection> {
     const prompt = `Select the best LED pattern for this context: "${text}"
 
 Available patterns:
-${cachedPatterns!.map(p => `- ${p.metadata.id}: ${p.metadata.description}`).join("\n")}
+${cachedPatterns!.map(p => `- ${p.id}: ${p.metadata.description}`).join("\n")}
 
 Respond with just the pattern_id.`;
 
@@ -74,7 +74,7 @@ export async function selectPatternLocal(text: string, patternLibrary: PatternLi
     const prompt = `Select the best LED pattern for this context: "${text}"
 
 Available patterns:
-${patterns.map(p => `- ${p.metadata.id}: ${p.metadata.description}`).join("\n")}
+${patterns.map(p => `- ${p.id}: ${p.metadata.description}`).join("\n")}
 
 Respond with just the pattern_id.`;
 

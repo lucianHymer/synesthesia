@@ -33,11 +33,11 @@ describe('NotificationService', () => {
       started_at: '2025-06-07T14:30:15Z'
     }]);
 
-    const request: NotificationRequest = { pattern_id: 'gentle_success_v3' };
+    const request: NotificationRequest = { pattern_id: 'gentle_success_v1' };
     const response = await service.handleNotification(request);
 
     expect(response.status).toBe('success');
-    expect(response.pattern_used).toBe('gentle_success_v3');
+    expect(response.pattern_used).toBe('gentle_success_v1');
     expect(response.started_at).toBeDefined();
     expect(deviceManager.sendToAllDevices).toHaveBeenCalledWith(new Uint8Array([1, 2, 3, 4]));
   });
@@ -59,7 +59,7 @@ describe('NotificationService', () => {
   test('should return error when no devices connected', async () => {
     deviceManager.hasConnectedDevices.mockReturnValue(false);
 
-    const request: NotificationRequest = { pattern_id: 'gentle_success_v3' };
+    const request: NotificationRequest = { pattern_id: 'gentle_success_v1' };
     const response = await service.handleNotification(request);
 
     expect(response.status).toBe('error');
@@ -70,7 +70,7 @@ describe('NotificationService', () => {
     deviceManager.hasConnectedDevices.mockReturnValue(true);
     deviceManager.sendToAllDevices.mockRejectedValue(new Error('Connection failed'));
 
-    const request: NotificationRequest = { pattern_id: 'gentle_success_v3' };
+    const request: NotificationRequest = { pattern_id: 'gentle_success_v1' };
     const response = await service.handleNotification(request);
 
     expect(response.status).toBe('error');
@@ -84,7 +84,7 @@ describe('NotificationService', () => {
       error: 'invalid_data'
     }]);
 
-    const request: NotificationRequest = { pattern_id: 'gentle_success_v3' };
+    const request: NotificationRequest = { pattern_id: 'gentle_success_v1' };
     const response = await service.handleNotification(request);
 
     expect(response.status).toBe('error');
@@ -98,13 +98,13 @@ describe('NotificationService', () => {
       started_at: '2025-06-07T14:30:15Z'
     }]);
 
-    const initialPattern = patternLibrary.getPattern('gentle_success_v3');
+    const initialPattern = patternLibrary.getPattern('gentle_success_v1');
     const initialUsageCount = initialPattern!.metadata.usage_count;
 
-    const request: NotificationRequest = { pattern_id: 'gentle_success_v3' };
+    const request: NotificationRequest = { pattern_id: 'gentle_success_v1' };
     await service.handleNotification(request);
 
-    const updatedPattern = patternLibrary.getPattern('gentle_success_v3');
+    const updatedPattern = patternLibrary.getPattern('gentle_success_v1');
     expect(updatedPattern!.metadata.usage_count).toBe(initialUsageCount + 1);
   });
 
@@ -114,7 +114,7 @@ describe('NotificationService', () => {
       throw new Error('Encoding failed');
     });
 
-    const request: NotificationRequest = { pattern_id: 'gentle_success_v3' };
+    const request: NotificationRequest = { pattern_id: 'gentle_success_v1' };
     const response = await service.handleNotification(request);
 
     expect(response.status).toBe('error');

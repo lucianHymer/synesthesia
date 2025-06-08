@@ -16,7 +16,7 @@ export class PatternLibrary {
   }
 
   addPattern(pattern: PatternWithMetadata): void {
-    this.patterns.set(pattern.metadata.id, pattern);
+    this.patterns.set(pattern.id, pattern);
   }
 
   updatePattern(id: string, pattern: PatternWithMetadata): boolean {
@@ -51,6 +51,7 @@ export class PatternLibrary {
   private loadInitialPatterns(): void {
     const patterns: PatternWithMetadata[] = [
       {
+        id: "gentle_success_v1",
         animation: {
           name: "gentle_success_v1",
           duration_ms: 3000,
@@ -78,7 +79,6 @@ export class PatternLibrary {
           ],
         },
         metadata: {
-          id: "gentle_success_v1",
           description: "Soft green fade with pleasant ascending chimes",
           tags: ["success", "gentle", "celebration", "green", "calm"],
           typical_use: "test passes, build success, minor achievements",
@@ -89,6 +89,7 @@ export class PatternLibrary {
         },
       },
       {
+        id: "urgent_alert_v1",
         animation: {
           name: "urgent_alert_v1",
           duration_ms: 2000,
@@ -118,7 +119,6 @@ export class PatternLibrary {
           ],
         },
         metadata: {
-          id: "urgent_alert_v1",
           description: "Bright red flashing with urgent beeps",
           tags: ["error", "urgent", "alert", "red", "critical"],
           typical_use: "build failures, critical errors, security alerts",
@@ -129,6 +129,7 @@ export class PatternLibrary {
         },
       },
       {
+        id: "celebration_milestone_v1",
         animation: {
           name: "celebration_milestone_v1",
           duration_ms: 5000,
@@ -173,7 +174,6 @@ export class PatternLibrary {
           ],
         },
         metadata: {
-          id: "celebration_milestone_v1",
           description: "Rainbow colors with ascending victory melody",
           tags: [
             "celebration",
@@ -191,6 +191,7 @@ export class PatternLibrary {
         },
       },
       {
+        id: "default_notification_v1",
         animation: {
           name: "default_notification_v1",
           duration_ms: 1000,
@@ -211,7 +212,6 @@ export class PatternLibrary {
           ],
         },
         metadata: {
-          id: "default_notification_v1",
           description: "Simple blue fade with single tone",
           tags: ["default", "neutral", "blue", "simple"],
           typical_use: "fallback notification when specific pattern not found",
@@ -222,6 +222,7 @@ export class PatternLibrary {
         },
       },
       {
+        id: "warning_attention_v1",
         animation: {
           name: "warning_attention_v1",
           duration_ms: 2500,
@@ -250,7 +251,6 @@ export class PatternLibrary {
           ],
         },
         metadata: {
-          id: "warning_attention_v1",
           description: "Orange warning glow with attention tones",
           tags: ["warning", "attention", "orange", "caution"],
           typical_use: "warnings, deprecation notices, important updates",
@@ -261,6 +261,7 @@ export class PatternLibrary {
         },
       },
       {
+        id: "info_subtle_v1",
         animation: {
           name: "info_subtle_v1",
           duration_ms: 1500,
@@ -281,7 +282,6 @@ export class PatternLibrary {
           ],
         },
         metadata: {
-          id: "info_subtle_v1",
           description: "Gentle blue pulse with soft chime",
           tags: ["info", "subtle", "blue", "notification"],
           typical_use:
@@ -293,6 +293,7 @@ export class PatternLibrary {
         },
       },
       {
+        id: "progress_building_v1",
         animation: {
           name: "progress_building_v1",
           duration_ms: 4000,
@@ -336,7 +337,6 @@ export class PatternLibrary {
           ],
         },
         metadata: {
-          id: "progress_building_v1",
           description: "Purple gradient build-up with ascending tones",
           tags: ["progress", "building", "purple", "gradual"],
           typical_use: "compilation progress, build processes, loading states",
@@ -347,6 +347,7 @@ export class PatternLibrary {
         },
       },
       {
+        id: "calm_waiting_v1",
         animation: {
           name: "calm_waiting_v1",
           duration_ms: 6000,
@@ -360,7 +361,6 @@ export class PatternLibrary {
           audio: [],
         },
         metadata: {
-          id: "calm_waiting_v1",
           description: "Gentle cyan breathing pattern, no audio",
           tags: ["waiting", "calm", "cyan", "breathing", "silent"],
           typical_use:
@@ -372,6 +372,7 @@ export class PatternLibrary {
         },
       },
       {
+        id: "error_prominent_v1",
         animation: {
           name: "error_prominent_v1",
           duration_ms: 1800,
@@ -400,7 +401,6 @@ export class PatternLibrary {
           ],
         },
         metadata: {
-          id: "error_prominent_v1",
           description: "Red error flash with dissonant low tones",
           tags: ["error", "prominent", "red", "failure"],
           typical_use: "test failures, compilation errors, general errors",
@@ -411,6 +411,7 @@ export class PatternLibrary {
         },
       },
       {
+        id: "success_dramatic_v1",
         animation: {
           name: "success_dramatic_v1",
           duration_ms: 3500,
@@ -454,7 +455,6 @@ export class PatternLibrary {
           ],
         },
         metadata: {
-          id: "success_dramatic_v1",
           description: "Dramatic green flash with ascending victory fanfare",
           tags: ["success", "dramatic", "green", "fanfare", "victory"],
           typical_use:

@@ -11,14 +11,14 @@ describe('PatternLibrary', () => {
   test('should load initial patterns', () => {
     const patterns = library.getAllPatterns();
     expect(patterns.length).toBeGreaterThan(0);
-    expect(patterns.some(p => p.metadata.id === 'gentle_success_v3')).toBe(true);
-    expect(patterns.some(p => p.metadata.id === 'default_notification_v1')).toBe(true);
+    expect(patterns.some(p => p.id === 'gentle_success_v1')).toBe(true);
+    expect(patterns.some(p => p.id === 'default_notification_v1')).toBe(true);
   });
 
   test('should get pattern by id', () => {
-    const pattern = library.getPattern('gentle_success_v3');
+    const pattern = library.getPattern('gentle_success_v1');
     expect(pattern).toBeDefined();
-    expect(pattern?.metadata.id).toBe('gentle_success_v3');
+    expect(pattern?.id).toBe('gentle_success_v1');
     expect(pattern?.metadata.tags).toContain('success');
   });
 
@@ -29,6 +29,7 @@ describe('PatternLibrary', () => {
 
   test('should add new pattern', () => {
     const newPattern: PatternWithMetadata = {
+      id: 'test_pattern_v1',
       animation: {
         name: 'test_pattern',
         duration_ms: 1000,
@@ -37,7 +38,6 @@ describe('PatternLibrary', () => {
         audio: []
       },
       metadata: {
-        id: 'test_pattern_v1',
         description: 'Test pattern for unit tests',
         tags: ['test'],
         typical_use: 'testing',
@@ -54,7 +54,7 @@ describe('PatternLibrary', () => {
   });
 
   test('should update existing pattern', () => {
-    const pattern = library.getPattern('gentle_success_v3');
+    const pattern = library.getPattern('gentle_success_v1');
     expect(pattern).toBeDefined();
     
     const updatedPattern = { 
@@ -62,17 +62,18 @@ describe('PatternLibrary', () => {
       metadata: { ...pattern!.metadata, description: 'Updated description' }
     };
     
-    const success = library.updatePattern('gentle_success_v3', updatedPattern);
+    const success = library.updatePattern('gentle_success_v1', updatedPattern);
     expect(success).toBe(true);
     
-    const retrieved = library.getPattern('gentle_success_v3');
+    const retrieved = library.getPattern('gentle_success_v1');
     expect(retrieved?.metadata.description).toBe('Updated description');
   });
 
   test('should not update non-existent pattern', () => {
     const dummyPattern: PatternWithMetadata = {
+      id: 'dummy',
       animation: { name: 'dummy', duration_ms: 1000, fps: 20, frames: [], audio: [] },
-      metadata: { id: 'dummy', description: '', tags: [], typical_use: '', intensity: 'low', mood: '', usage_count: 0, created_at: '' }
+      metadata: { description: '', tags: [], typical_use: '', intensity: 'low', mood: '', usage_count: 0, created_at: '' }
     };
     
     const success = library.updatePattern('non_existent', dummyPattern);
@@ -80,11 +81,11 @@ describe('PatternLibrary', () => {
   });
 
   test('should delete pattern', () => {
-    expect(library.getPattern('gentle_success_v3')).toBeDefined();
+    expect(library.getPattern('gentle_success_v1')).toBeDefined();
     
-    const success = library.deletePattern('gentle_success_v3');
+    const success = library.deletePattern('gentle_success_v1');
     expect(success).toBe(true);
-    expect(library.getPattern('gentle_success_v3')).toBeUndefined();
+    expect(library.getPattern('gentle_success_v1')).toBeUndefined();
   });
 
   test('should not delete non-existent pattern', () => {
@@ -93,12 +94,12 @@ describe('PatternLibrary', () => {
   });
 
   test('should increment usage count', () => {
-    const pattern = library.getPattern('gentle_success_v3');
+    const pattern = library.getPattern('gentle_success_v1');
     const initialCount = pattern!.metadata.usage_count;
     
-    library.incrementUsage('gentle_success_v3');
+    library.incrementUsage('gentle_success_v1');
     
-    const updatedPattern = library.getPattern('gentle_success_v3');
+    const updatedPattern = library.getPattern('gentle_success_v1');
     expect(updatedPattern!.metadata.usage_count).toBe(initialCount + 1);
   });
 

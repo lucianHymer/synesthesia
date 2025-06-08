@@ -20,7 +20,6 @@ export interface AudioNote {
 }
 
 export interface PatternMetadata {
-  id: string;
   description: string;
   tags: string[];
   typical_use: string;
@@ -31,6 +30,7 @@ export interface PatternMetadata {
 }
 
 export interface PatternWithMetadata {
+  id: string;
   animation: Animation;
   metadata: PatternMetadata;
 }
