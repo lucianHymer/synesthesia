@@ -192,8 +192,7 @@ Offset  Size  Field
 ```json
 // Success
 {
-  "status": "playing",
-  "started_at": "2024-01-07T15:30:45.123Z"
+  "status": "playing"
 }
 
 // Error
