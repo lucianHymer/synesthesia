@@ -1,326 +1,382 @@
-# Test-Driven Development Plan for Team 1
+# Test-Driven Development Plan
 
-## TDD Philosophy
-Write tests first, then implement minimal code to make tests pass, then refactor.
+## Overview
 
-## Testing Layers
+This document outlines the TDD approach for building the Core Notification Service. Each component will be developed test-first, ensuring high quality and maintainability.
 
-### 1. Rust Encoder Library Tests
+## Testing Framework Setup
 
-#### Unit Tests Structure
-```
-animation_encoder/
-├── src/
-│   ├── lib.rs
-│   ├── binary.rs      # Binary encoding logic
-│   ├── compression.rs # Zlib compression
-│   └── validation.rs  # Input validation
-└── tests/
-    ├── unit/
-    │   ├── binary_test.rs
-    │   ├── compression_test.rs
-    │   └── validation_test.rs
-    └── integration/
-        └── round_trip_test.rs
-```
+- **Test Runner**: Jest
+- **Language**: TypeScript
+- **Mocking**: Jest built-in mocks
+- **Coverage Target**: 90%+
 
-#### Test Cases - Priority Order
+## Development Order (TDD)
 
-##### Phase 1: Basic Structure Tests
-```rust
-// Test 1: Empty animation encoding
-#[test]
-fn test_encode_empty_animation() {
-    let anim = Animation {
-        duration_ms: 0,
-        fps: 20,
-        frames: vec![],
-        audio: vec![],
-    };
-    let result = encode_animation(&anim).unwrap();
-    // Verify header bytes
-}
+### Phase 1: Core Data Models and Interfaces
+Start with the simplest, most foundational pieces.
 
-// Test 2: Single frame encoding
-#[test]
-fn test_encode_single_frame() {
-    let anim = Animation {
-        duration_ms: 1000,
-        fps: 20,
-        frames: vec![Frame {
-            time_ms: 0,
-            leds: [[0, 0, 0]; 20],
-        }],
-        audio: vec![],
-    };
-    let result = encode_animation(&anim).unwrap();
-    // Verify header + frame data
-}
-
-// Test 3: Header format validation
-#[test]
-fn test_header_format() {
-    // Test version, duration, fps encoding
-    // Verify little-endian byte order
-}
+#### 1.1 Pattern Model Tests
+```typescript
+describe('Pattern', () => {
+  test('should create valid pattern from JSON');
+  test('should validate required fields');
+  test('should reject invalid LED arrays');
+  test('should enforce 20 FPS constraint');
+  test('should validate audio note frequencies');
+});
 ```
 
-##### Phase 2: Complex Animation Tests
-```rust
-// Test 4: Multi-frame animation
-#[test]
-fn test_encode_multiple_frames() {
-    // 2-second animation with keyframes
-}
-
-// Test 5: Audio note encoding
-#[test]
-fn test_encode_audio_notes() {
-    // Single and multiple audio notes
-}
-
-// Test 6: Full animation with audio
-#[test]
-fn test_encode_complete_animation() {
-    // Frames + audio notes
-}
+#### 1.2 Notification Model Tests
+```typescript
+describe('Notification', () => {
+  test('should create notification request from text');
+  test('should validate text length limits');
+  test('should generate proper response format');
+});
 ```
 
-##### Phase 3: Edge Cases & Validation
-```rust
-// Test 7: Maximum size limits
-#[test]
-fn test_maximum_animation_size() {
-    // 10-second animation at 20 FPS
-}
+### Phase 2: Pattern Library (File Storage)
 
-// Test 8: Invalid input handling
-#[test]
-fn test_invalid_fps() {
-    // fps != 20 should error
-}
-
-// Test 9: Compression verification
-#[test]
-fn test_compression_ratio() {
-    // Verify zlib compression works
-}
+#### 2.1 PatternLibrary Tests
+```typescript
+describe('PatternLibrary', () => {
+  describe('loadPattern', () => {
+    test('should load pattern by ID');
+    test('should throw error for missing pattern');
+    test('should cache loaded patterns');
+  });
+  
+  describe('listPatterns', () => {
+    test('should return all patterns with metadata');
+    test('should handle empty pattern directory');
+  });
+  
+  describe('savePattern', () => {
+    test('should save new pattern to disk');
+    test('should update existing pattern');
+    test('should validate pattern before saving');
+  });
+  
+  describe('searchPatterns', () => {
+    test('should find patterns by tags');
+    test('should search in descriptions');
+    test('should handle no matches');
+  });
+});
 ```
 
-### 2. ESP32 Firmware Tests
+### Phase 3: Default Pattern Selection
 
-#### Test Structure
-```
-esp32_firmware/
-├── src/
-│   ├── main.cpp
-│   ├── websocket.cpp
-│   ├── decoder.cpp
-│   ├── animation.cpp
-│   └── audio.cpp
-└── test/
-    ├── test_decoder.cpp
-    ├── test_animation.cpp
-    └── test_integration.cpp
+#### 3.1 PatternSelector Tests
+```typescript
+describe('PatternSelector', () => {
+  describe('selectFallback', () => {
+    test('should return default pattern when pattern not found');
+    test('should handle missing pattern gracefully');
+    test('should use configured default pattern ID');
+  });
+});
 ```
 
-#### Test Cases
+### Phase 4: Device Management
 
-##### Phase 1: Core Functionality
-```cpp
-// Test 1: Binary header parsing
-void test_parse_header() {
-    uint8_t data[] = {0x01, 0x00, 0xE8, 0x03, 0x14, 0x00, 0x02, 0x00, 0x01, 0x00};
-    AnimationHeader header;
-    assert(parse_header(data, &header) == true);
-    assert(header.version == 0x0001);
-    assert(header.duration_ms == 1000);
-}
-
-// Test 2: Frame data extraction
-void test_parse_frame() {
-    // Test frame timestamp and LED data
-}
-
-// Test 3: Memory bounds checking
-void test_buffer_overflow_protection() {
-    // Ensure we don't read past buffer
-}
+#### 4.1 DeviceConnection Tests
+```typescript
+describe('DeviceConnection', () => {
+  test('should establish WebSocket connection');
+  test('should send animation data');
+  test('should handle connection errors');
+  test('should reconnect on disconnect');
+  test('should timeout on no response');
+});
 ```
 
-##### Phase 2: WebSocket Tests
-```cpp
-// Test 4: JSON message parsing
-void test_parse_websocket_message() {
-    const char* msg = "{\"type\":\"play\",\"data\":\"base64data\"}";
-    // Verify extraction of type and data
-}
-
-// Test 5: Base64 decoding
-void test_base64_decode() {
-    // Test valid and invalid base64
-}
-
-// Test 6: Error response generation
-void test_error_response() {
-    // Verify JSON error formatting
-}
+#### 4.2 DeviceManager Tests
+```typescript
+describe('DeviceManager', () => {
+  test('should register new devices');
+  test('should track device status');
+  test('should send to all connected devices');
+  test('should queue messages for offline devices');
+  test('should handle device removal');
+});
 ```
 
-### 3. Integration Test Suite
+### Phase 5: External Integrations
 
-#### Round-Trip Tests
-```rust
-// Test complete flow: JSON → Binary → Compressed → Decompressed → Parsed
-#[test]
-fn test_full_round_trip() {
-    // 1. Create animation in Rust
-    let original = create_test_animation();
+#### 5.1 AnimationEncoder Tests
+```typescript
+describe('AnimationEncoder', () => {
+  test('should encode valid animation to binary');
+  test('should compress with zlib');
+  test('should handle encoding errors');
+  test('should validate animation constraints');
+});
+```
+
+### Phase 6: Message Queue
+
+#### 6.1 MessageQueue Tests
+```typescript
+describe('MessageQueue', () => {
+  test('should enqueue messages');
+  test('should process in priority order');
+  test('should retry failed messages');
+  test('should respect retry limits');
+  test('should expire old messages');
+});
+```
+
+### Phase 7: Core Service Integration
+
+#### 7.1 NotificationService Tests
+```typescript
+describe('NotificationService', () => {
+  describe('notify', () => {
+    test('should process notification with pattern_id end-to-end');
+    test('should load specified pattern from library');
+    test('should fall back to default when pattern not found');
+    test('should encode and send to device');
+    test('should handle device offline');
+    test('should return proper response');
+  });
+  
+  describe('error handling', () => {
+    test('should handle pattern not found');
+    test('should handle encoding failure');
+    test('should handle all devices offline');
+    test('should timeout long operations');
+  });
+});
+```
+
+### Phase 8: API Endpoints
+
+#### 8.1 Notify Endpoint Tests
+```typescript
+describe('POST /api/notify', () => {
+  test('should accept notification with pattern_id');
+  test('should validate pattern_id exists');
+  test('should return 200 on success');
+  test('should return 404 when pattern not found');
+  test('should return 503 when devices offline');
+  test('should handle malformed requests');
+});
+```
+
+#### 8.2 Pattern Management Tests
+```typescript
+describe('Pattern API', () => {
+  describe('GET /api/patterns', () => {
+    test('should list all patterns');
+    test('should support pagination');
+  });
+  
+  describe('GET /api/patterns/:id', () => {
+    test('should return pattern by ID');
+    test('should return 404 for missing');
+  });
+  
+  describe('POST /api/patterns', () => {
+    test('should create new pattern');
+    test('should validate pattern format');
+    test('should prevent duplicate IDs');
+  });
+});
+```
+
+## Mock Strategies
+
+### External Dependencies
+```typescript
+// Mock Team 1's encoder
+jest.mock('../integrations/AnimationEncoder', () => ({
+  encode: jest.fn().mockResolvedValue(new Uint8Array([1,2,3,4]))
+}));
+
+// No Team 3 integration needed - they call our API directly
+
+// Mock WebSocket
+jest.mock('ws', () => ({
+  WebSocket: jest.fn().mockImplementation(() => ({
+    send: jest.fn(),
+    close: jest.fn(),
+    on: jest.fn()
+  }))
+}));
+```
+
+### Test Fixtures
+```typescript
+// patterns/fixtures/test_pattern.json
+export const testPattern = {
+  pattern_id: "test_pattern",
+  name: "Test Pattern",
+  duration_ms: 1000,
+  fps: 20,
+  frames: [
+    { time_ms: 0, leds: Array(20).fill([0,0,0]) },
+    { time_ms: 1000, leds: Array(20).fill([255,0,0]) }
+  ],
+  audio: [],
+  metadata: {
+    id: "test_pattern",
+    description: "Test pattern for unit tests",
+    tags: ["test"],
+    typical_use: "testing",
+    intensity: "low",
+    mood: "neutral"
+  }
+};
+```
+
+## Integration Test Scenarios
+
+### Scenario 1: Happy Path
+1. Team 3's MCP tool sends notification with pattern_id
+2. Pattern loads successfully from library
+3. Encoding succeeds
+4. Device receives and confirms
+5. MCP tool gets success response
+
+### Scenario 2: Pattern Not Found Fallback
+1. Team 3's MCP tool sends notification with invalid pattern_id
+2. Pattern not found in library
+3. Service falls back to default pattern
+4. Rest of flow succeeds
+
+### Scenario 3: Device Offline
+1. Team 3's MCP tool sends notification with pattern_id
+2. Pattern loads successfully
+3. No devices connected
+4. Message queued
+5. MCP tool gets queued response
+
+### Scenario 4: Encoding Failure
+1. Team 3's MCP tool sends notification with pattern_id
+2. Pattern loads successfully
+3. Animation encoding fails
+4. Service returns error response
+
+## E2E Test Plan
+
+```typescript
+describe('E2E Notification Flow', () => {
+  let app: Application;
+  let mockDevice: MockWebSocketServer;
+  
+  beforeAll(() => {
+    app = createApp();
+    mockDevice = new MockWebSocketServer();
+  });
+  
+  test('should deliver notification to device', async () => {
+    // 1. Start mock device
+    await mockDevice.listen(8080);
     
-    // 2. Encode to binary
-    let encoded = encode_animation(&original)?;
+    // 2. Connect device to service
+    await request(app)
+      .post('/api/devices/register')
+      .send({ ip: 'localhost:8080' });
     
-    // 3. Simulate ESP32 decompression
-    let decompressed = decompress(encoded)?;
+    // 3. Send notification with pattern_id
+    const response = await request(app)
+      .post('/api/notify')
+      .send({ pattern_id: 'gentle_success_v3' });
     
-    // 4. Parse binary back to structures
-    let parsed = parse_animation(decompressed)?;
+    // 4. Verify response
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('success');
+    expect(response.body.pattern_used).toBeDefined();
     
-    // 5. Verify data integrity
-    assert_eq!(original, parsed);
-}
+    // 5. Verify device received data
+    expect(mockDevice.lastMessage).toMatchObject({
+      type: 'play',
+      data: expect.any(String)
+    });
+  });
+});
 ```
 
-#### Performance Tests
-```rust
-#[test]
-fn test_encoding_performance() {
-    let anim = create_large_animation(); // 10 seconds
-    let start = Instant::now();
-    let _ = encode_animation(&anim).unwrap();
-    let duration = start.elapsed();
-    assert!(duration.as_millis() < 50); // Must encode in <50ms
-}
-```
+## Coverage Goals
 
-### 4. Hardware-in-Loop Tests
+- **Unit Tests**: 95%+ coverage
+- **Integration Tests**: 85%+ coverage
+- **E2E Tests**: Critical paths only
 
-#### LED Pattern Verification
-```python
-# test_led_patterns.py
-def test_fade_animation():
-    # Send fade animation
-    # Capture LED output with camera/sensor
-    # Verify color transitions
-    pass
+## CI/CD Integration
 
-def test_animation_timing():
-    # Send timed pattern
-    # Measure actual frame rate
-    # Verify 20 FPS ± 5%
-    pass
-```
-
-#### Audio Waveform Tests
-```python
-def test_audio_waveforms():
-    # Generate each waveform type
-    # Record audio output
-    # FFT analysis to verify frequency
-    pass
-
-def test_audio_sync():
-    # Send animation with synchronized audio
-    # Verify audio starts with LED changes
-    pass
-```
-
-## Test Execution Plan
-
-### Development Workflow
-1. **Write failing test** for next feature
-2. **Implement minimal code** to pass test
-3. **Refactor** for clarity/performance
-4. **Run all tests** to ensure no regression
-5. **Commit** with test and implementation
-
-### Continuous Integration
 ```yaml
 # .github/workflows/test.yml
-name: Test Suite
+name: Tests
 on: [push, pull_request]
 
 jobs:
-  rust-tests:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - run: cd animation_encoder && cargo test
-      
-  esp32-build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: platformio test -e native
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm test -- --coverage
+      - run: npm run test:integration
+      - run: npm run test:e2e
 ```
 
-### Test Coverage Goals
-- Rust encoder: 95% coverage
-- ESP32 decoder: 90% coverage
-- Integration: All critical paths
-- Hardware: Manual verification checklist
+## Red-Green-Refactor Workflow
 
-## Mock Data for Testing
+1. **Red**: Write a failing test
+   - Focus on behavior, not implementation
+   - One assertion per test initially
+   - Use descriptive test names
 
-### Test Animations
-```rust
-// Simple test animation
-pub fn create_simple_animation() -> Animation {
-    Animation {
-        duration_ms: 1000,
-        fps: 20,
-        frames: vec![
-            Frame { time_ms: 0, leds: [[0, 0, 0]; 20] },
-            Frame { time_ms: 500, leds: [[255, 0, 0]; 20] },
-            Frame { time_ms: 1000, leds: [[0, 0, 0]; 20] },
-        ],
-        audio: vec![
-            AudioNote {
-                start_ms: 0,
-                duration_ms: 200,
-                frequency: 440,
-                voice: 0,
-                waveform: Waveform::Square,
-            },
-        ],
+2. **Green**: Make it pass
+   - Write minimal code
+   - Don't worry about elegance
+   - Focus on making test green
+
+3. **Refactor**: Improve the code
+   - Remove duplication
+   - Improve naming
+   - Extract methods/classes
+   - Ensure tests still pass
+
+## Example TDD Session
+
+```typescript
+// Step 1: Red - Write failing test
+test('should select gentle pattern for late night', () => {
+  const selector = new PatternSelector();
+  const result = selector.selectDefault("It's 11pm and the build failed");
+  expect(result).toBe('gentle_notification_v1');
+});
+
+// Step 2: Green - Minimal implementation
+class PatternSelector {
+  selectDefault(text: string): string {
+    if (text.includes('11pm')) {
+      return 'gentle_notification_v1';
     }
+    return 'default_notification_v1';
+  }
 }
 
-// Edge case animations
-pub fn create_maximum_animation() -> Animation {
-    // 10-second animation at 20 FPS = 200 frames
-}
-
-pub fn create_minimum_animation() -> Animation {
-    // Single frame, no audio
+// Step 3: Refactor - Improve implementation
+class PatternSelector {
+  private readonly LATE_NIGHT_PATTERNS = /\b(11pm|12am|1am|2am|late night)\b/i;
+  
+  selectDefault(text: string): string {
+    if (this.isLateNight(text)) {
+      return 'gentle_notification_v1';
+    }
+    return 'default_notification_v1';
+  }
+  
+  private isLateNight(text: string): boolean {
+    return this.LATE_NIGHT_PATTERNS.test(text);
+  }
 }
 ```
-
-## Success Metrics
-
-### Test Quality
-- Clear test names describing behavior
-- Single assertion per test when possible
-- Fast execution (<1s per test)
-- Deterministic results
-
-### Coverage Targets
-- Statement coverage: >90%
-- Branch coverage: >85%
-- Critical path coverage: 100%
-
-### Performance Benchmarks
-- Encoding time: <50ms for 10s animation
-- Decoding time: <30ms for 10s animation  
-- Memory usage: <8KB peak
-- Latency: <100ms end-to-end

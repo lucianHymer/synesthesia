@@ -4,6 +4,7 @@ import { PatternLibrary } from './patterns/PatternLibrary';
 import { DeviceManager } from './device/DeviceManager';
 import { NotificationService } from './services/NotificationService';
 import { createRoutes } from './api/routes';
+// import { startMCPServer } from './mcp/index';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +31,7 @@ async function startServer() {
       console.warn(`Could not connect to device: ${defaultDeviceIP}, continuing without device`);
     }
 
+    // Start HTTP server
     app.listen(PORT, () => {
       console.log(`LED Notification Service running on port ${PORT}`);
       console.log(`Pattern library loaded with ${patternLibrary.getAllPatterns().length} patterns`);
@@ -43,6 +45,12 @@ async function startServer() {
       console.log('  PUT /api/patterns/:id - Update pattern');
       console.log('  DELETE /api/patterns/:id - Delete pattern');
     });
+
+    // Start MCP server if in MCP mode (temporarily disabled for build)
+    if (process.env.NODE_ENV === 'mcp' || process.argv.includes('--mcp')) {
+      console.log('MCP integration temporarily disabled during integration testing');
+      // await startMCPServer(notificationService, patternLibrary);
+    }
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);

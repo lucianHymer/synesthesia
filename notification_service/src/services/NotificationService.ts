@@ -12,6 +12,10 @@ export class NotificationService {
     this.deviceManager = deviceManager;
   }
 
+  async notify(request: NotificationRequest): Promise<NotificationResponse> {
+    return this.handleNotification(request);
+  }
+
   async handleNotification(request: NotificationRequest): Promise<NotificationResponse> {
     try {
       let pattern = this.patternLibrary.getPattern(request.pattern_id);
