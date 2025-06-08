@@ -1,0 +1,28 @@
+# Rust
+/animation_encoder/target/
+/animation_encoder/Cargo.lock
+**/*.rs.bk
+
+# PlatformIO
+/esp32_firmware/.pio/
+/esp32_firmware/.vscode/
+
+# Build artifacts
+*.o
+*.elf
+*.bin
+*.hex
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
