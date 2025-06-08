@@ -17,7 +17,11 @@ export class DeviceConnection {
   async connect(): Promise<boolean> {
     return new Promise((resolve) => {
       try {
-        this.ws = new WebSocket(`ws://${this.deviceIP}:80`);
+        // Support deviceIP with port (e.g., "localhost:8080") or default to port 80
+        const wsUrl = this.deviceIP.includes(':') 
+          ? `ws://${this.deviceIP}` 
+          : `ws://${this.deviceIP}:80`;
+        this.ws = new WebSocket(wsUrl);
         
         this.ws.on('open', () => {
           logger.info(`Connected to device at ${this.deviceIP}`);

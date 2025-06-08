@@ -20,15 +20,15 @@ app.use(createRoutes(notificationService, patternLibrary));
 
 async function startServer() {
   try {
-    const defaultDeviceIP = process.env.DEVICE_IP || '192.168.1.100';
+    const defaultDeviceAddress = process.env.DEVICE_ADDRESS || '192.168.1.100';
     
-    console.log(`Attempting to connect to default device: ${defaultDeviceIP}`);
-    const connected = await deviceManager.addDevice(defaultDeviceIP);
+    console.log(`Attempting to connect to default device: ${defaultDeviceAddress}`);
+    const connected = await deviceManager.addDevice(defaultDeviceAddress);
     
     if (connected) {
-      console.log(`Successfully connected to device: ${defaultDeviceIP}`);
+      console.log(`Successfully connected to device: ${defaultDeviceAddress}`);
     } else {
-      console.warn(`Could not connect to device: ${defaultDeviceIP}, continuing without device`);
+      console.warn(`Could not connect to device: ${defaultDeviceAddress}, continuing without device`);
     }
 
     // Start HTTP server

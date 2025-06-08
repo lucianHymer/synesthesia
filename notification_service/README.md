@@ -50,7 +50,7 @@ npm run typecheck && npm run lint
 
 ```bash
 PORT=3000                    # HTTP server port
-DEVICE_IP=192.168.1.100     # Default ESP32 device IP
+DEVICE_ADDRESS=192.168.1.100 # Default ESP32 device address (IP or IP:port)
 NODE_ENV=production         # Environment mode
 ```
 
@@ -227,7 +227,7 @@ docker run -p 3000:3000 synesthesia-service
 
 **Device connection fails:**
 - Verify ESP32 is on same network
-- Check DEVICE_IP environment variable
+- Check DEVICE_ADDRESS environment variable
 - Monitor device logs via serial
 
 **MCP integration issues:**
