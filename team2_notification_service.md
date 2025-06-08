@@ -20,22 +20,13 @@ use animation_encoder::{Animation, Frame, AudioNote, encode_animation};
 let compressed_bytes = encode_animation(&animation)?;
 ```
 
-### From Team 3: Pattern Selection API
-```typescript
-// Team 3 provides endpoint
-POST /api/select-pattern
-{
-  "text": string,  // Free-form text description
-  "available_patterns": PatternWithMetadata[]  // Full pattern info
-}
+### From Team 3: MCP Tool
+Team 3's MCP tool will:
+- Access your pattern library to see available patterns
+- Select appropriate pattern based on context
+- Call your `/api/notify` endpoint with chosen `pattern_id`
 
-Response:
-{
-  "pattern_id": string,
-  "confidence": number,
-  "reasoning": string
-}
-```
+No direct API integration needed - they call you!
 
 ## What You Deliver
 
@@ -45,7 +36,7 @@ Response:
 ```typescript
 POST /api/notify
 {
-  "text": "All 247 tests passed! First successful run after yesterday's auth failures. Feels great!"
+  "pattern_id": "gentle_success_v3"
 }
 
 Response (waits for device confirmation):
@@ -61,16 +52,13 @@ Response (waits for device confirmation):
 ```typescript
 class NotificationService {
   async handleNotification(request: NotificationRequest) {
-    // 1. Get pattern recommendation from Team 3 (or use default)
-    const selected = await getPatternSelection(request);
+    // 1. Load pattern from library (Team 3 already selected it)
+    const pattern = await loadPattern(request.pattern_id);
     
-    // 2. Load pattern from library
-    const pattern = await loadPattern(selected.pattern_id);
-    
-    // 3. Convert to binary using Team 1's encoder
+    // 2. Convert to binary using Team 1's encoder
     const encoded = encodeAnimation(pattern);
     
-    // 4. Send to device(s)
+    // 3. Send to device(s)
     await sendToDevice(encoded);
   }
 }
@@ -162,23 +150,15 @@ class DeviceConnection {
 - Queue messages during disconnection
 - Support multiple devices
 
-### 4. Default Pattern Selection
+### 4. Fallback Pattern Selection
 
-When Team 3's AI service is unavailable:
+When requested pattern_id is not found:
 ```typescript
-function selectDefaultPattern(text: string): string {
-  // Simple rule-based selection based on text content
-  const lowerText = text.toLowerCase();
+function selectFallbackPattern(patternId: string): string {
+  // Log the missing pattern for debugging
+  console.warn(`Pattern not found: ${patternId}, using default`);
   
-  if (lowerText.includes("success") || lowerText.includes("passed") || lowerText.includes("complete")) {
-    return "gentle_success_v3";
-  }
-  if (lowerText.includes("error") || lowerText.includes("failed") || lowerText.includes("urgent")) {
-    return "urgent_alert_v1";
-  }
-  if (lowerText.includes("11pm") || lowerText.includes("late night") || lowerText.includes("tired")) {
-    return "gentle_notification_v1";  // Softer for late night
-  }
+  // Always fall back to a known good pattern
   return "default_notification_v1";
 }
 ```
@@ -197,13 +177,13 @@ Create at least 10 patterns covering:
 1. **Week 1**: Basic service + device connection
 2. **Week 2**: Pattern library + storage
 3. **Week 3**: Queue system + reliability
-4. **Week 4**: Integration with Teams 1 & 3
+4. **Week 4**: Integration with Team 1 + testing
 
 ## Testing Strategy
 
 ### Unit Tests
 - Pattern storage/retrieval
-- Default selection logic
+- Fallback pattern selection
 - Message queuing
 
 ### Integration Tests
@@ -211,23 +191,19 @@ Create at least 10 patterns covering:
 // Mock Team 1's encoder
 const mockEncoder = (anim: Animation) => new Uint8Array([1,2,3,4]);
 
-// Mock Team 3's selector
-const mockSelector = async (req: PatternRequest) => ({
-  pattern_id: "test_pattern",
-  confidence: 0.95
-});
-
 // Test full flow
 const response = await service.notify({
-  message: "Build successful!",
-  urgency: "normal"
+  pattern_id: "gentle_success_v3"
 });
+
+expect(response.status).toBe("success");
+expect(response.pattern_used).toBe("gentle_success_v3");
 ```
 
 ### End-to-End Test
-1. Send notification request
-2. Verify pattern selection
-3. Check device receives data
+1. Send notification request with pattern_id
+2. Verify pattern loads from library
+3. Check device receives encoded data
 4. Confirm playback starts
 
 ## Questions to Resolve

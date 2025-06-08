@@ -86,20 +86,20 @@ interface PatternWithMetadata {
 ```typescript
 POST /api/notify
 {
-  "text": string  // Free-form description of everything
+  "pattern_id": string  // Animation ID to play
 }
 
 // Examples:
 {
-  "text": "Build failed after 3 attempts. It's 11:47pm, I've been debugging authentication errors for 2 hours. Getting really frustrated with TypeScript."
+  "pattern_id": "gentle_success_v3"
 }
 
 {
-  "text": "All 247 tests passed! First successful run of the new user authentication system. Feels great after yesterday's failures."
+  "pattern_id": "urgent_alert_v1"
 }
 
 {
-  "text": "Deployment to production successful. 1,247 users migrated to new schema. No errors detected."
+  "pattern_id": "celebration_milestone_v2"
 }
 
 Response (waits for device confirmation):
