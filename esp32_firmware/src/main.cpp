@@ -3,14 +3,14 @@
 #include <ArduinoJson.h>
 #include <FastLED.h>
 #include <driver/ledc.h>
-#include <zlib.h>
-#include <base64.h>
+#include <miniz.h>
+#include <Base64.h>
 
 #define LED_PIN 5
 #define NUM_LEDS 20
 #define AUDIO_PIN_1 25
 #define AUDIO_PIN_2 26
-#define WEBSOCKET_PORT 80
+#define WEBSOCKET_PORT 81
 
 const char* ssid = "ESP32_Animation";
 const char* password = "animation123";
@@ -186,48 +186,32 @@ bool decodeAnimation(const String& base64Data) {
     }
 
     // Decode base64
-    int decodedLen = base64_dec_len(base64Data.c_str(), base64Data.length());
+    int decodedLen = Base64.decodedLength((char*)base64Data.c_str(), base64Data.length());
     uint8_t* compressed = (uint8_t*)malloc(decodedLen);
     if (!compressed) {
         Serial.println("Failed to allocate memory for compressed data");
         return false;
     }
     
-    base64_decode((char*)compressed, base64Data.c_str(), base64Data.length());
+    Base64.decode((char*)compressed, (char*)base64Data.c_str(), base64Data.length());
 
-    // Decompress
-    z_stream stream = {0};
-    if (inflateInit(&stream) != Z_OK) {
-        free(compressed);
-        Serial.println("Failed to initialize zlib");
-        return false;
-    }
-
-    uint8_t* decompressed = (uint8_t*)malloc(8192); // 8KB buffer
+    // Decompress using miniz
+    mz_ulong decompressed_size = 8192; // 8KB buffer
+    uint8_t* decompressed = (uint8_t*)malloc(decompressed_size);
     if (!decompressed) {
         free(compressed);
-        inflateEnd(&stream);
         Serial.println("Failed to allocate decompression buffer");
         return false;
     }
 
-    stream.next_in = compressed;
-    stream.avail_in = decodedLen;
-    stream.next_out = decompressed;
-    stream.avail_out = 8192;
-
-    int result = inflate(&stream, Z_FINISH);
-    if (result != Z_STREAM_END) {
-        free(compressed);
+    int result = mz_uncompress(decompressed, &decompressed_size, compressed, decodedLen);
+    free(compressed);
+    
+    if (result != MZ_OK) {
         free(decompressed);
-        inflateEnd(&stream);
         Serial.printf("Decompression failed: %d\n", result);
         return false;
     }
-
-    size_t decompressed_size = stream.total_out;
-    inflateEnd(&stream);
-    free(compressed);
 
     // Parse header
     if (decompressed_size < sizeof(AnimationHeader)) {

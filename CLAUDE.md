@@ -63,7 +63,7 @@ make dev-mcp            # npm run dev -- --mcp
 make upload-firmware     # pio run --target upload
 
 # Monitor serial output
-make monitor            # pio monitor
+make monitor            # pio device monitor
 ```
 
 ## Architecture Overview

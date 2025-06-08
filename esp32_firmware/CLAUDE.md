@@ -14,8 +14,8 @@ pio run --target clean        # Clean build files
 ### Testing & Monitoring
 ```bash
 pio test                      # Run tests (requires hardware)
-pio monitor                   # Serial monitor for debugging
-pio monitor --baud 115200     # Monitor with specific baud rate
+pio device monitor            # Serial monitor for debugging
+pio device monitor --baud 115200  # Monitor with specific baud rate
 ```
 
 ### Environment Management

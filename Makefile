@@ -100,7 +100,7 @@ docs: ## Generate documentation for all packages
 
 monitor: ## Monitor ESP32 serial output
 	@echo "$(GREEN)Monitoring ESP32 serial output...$(NC)"
-	@cd esp32_firmware && pio monitor
+	@cd esp32_firmware && pio device monitor
 
 # Development workflow commands
 check: test lint ## Run tests and linting (pre-commit check)

@@ -59,7 +59,7 @@ pio run
 pio run --target upload
 
 # Monitor serial output
-pio monitor
+pio device monitor
 
 # Run tests (requires hardware)
 pio test
@@ -119,7 +119,7 @@ Enable debug output in `main.cpp`:
 View logs via serial monitor:
 
 ```bash
-pio monitor --baud 115200
+pio device monitor --baud 115200
 ```
 
 ## Troubleshooting
