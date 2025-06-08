@@ -138,18 +138,21 @@ void animationTaskCode(void* parameter) {
                 continue;
             }
 
-            // Update LEDs
-            while (current_animation.current_frame < current_animation.header.frame_count - 1 &&
-                   current_animation.frames[current_animation.current_frame + 1].time_ms <= elapsed_ms) {
-                current_animation.current_frame++;
-            }
-
-            if (current_animation.current_frame < current_animation.header.frame_count) {
-                Frame* frame = &current_animation.frames[current_animation.current_frame];
-                for (int i = 0; i < NUM_LEDS; i++) {
-                    leds[i] = CRGB(frame->leds[i][0], frame->leds[i][1], frame->leds[i][2]);
+            // Update LEDs with bounds checking
+            if (current_animation.frames && current_animation.header.frame_count > 0) {
+                while (current_animation.current_frame < current_animation.header.frame_count - 1 &&
+                       current_animation.current_frame + 1 < current_animation.header.frame_count &&
+                       current_animation.frames[current_animation.current_frame + 1].time_ms <= elapsed_ms) {
+                    current_animation.current_frame++;
                 }
-                FastLED.show();
+
+                if (current_animation.current_frame < current_animation.header.frame_count) {
+                    Frame* frame = &current_animation.frames[current_animation.current_frame];
+                    for (int i = 0; i < NUM_LEDS && i < 20; i++) {
+                        leds[i] = CRGB(frame->leds[i][0], frame->leds[i][1], frame->leds[i][2]);
+                    }
+                    FastLED.show();
+                }
             }
         }
         vTaskDelay(pdMS_TO_TICKS(50)); // 20 FPS
@@ -162,11 +165,13 @@ void audioTaskCode(void* parameter) {
             unsigned long elapsed_ms = millis() - current_animation.start_time;
             
             bool audio_playing = false;
-            for (uint16_t i = 0; i < current_animation.header.note_count; i++) {
-                AudioNote* note = &current_animation.notes[i];
-                if (elapsed_ms >= note->start_ms && elapsed_ms <= note->start_ms + note->duration_ms) {
-                    playAudio(note, elapsed_ms);
-                    audio_playing = true;
+            if (current_animation.notes && current_animation.header.note_count > 0) {
+                for (uint16_t i = 0; i < current_animation.header.note_count; i++) {
+                    AudioNote* note = &current_animation.notes[i];
+                    if (elapsed_ms >= note->start_ms && elapsed_ms <= note->start_ms + note->duration_ms) {
+                        playAudio(note, elapsed_ms);
+                        audio_playing = true;
+                    }
                 }
             }
             
@@ -192,26 +197,56 @@ bool decodeAnimation(const String& base64Data) {
         current_animation.notes = nullptr;
     }
 
-    // Decode base64
+    // Validate input length
+    if (base64Data.length() == 0 || base64Data.length() > 32768) {
+        Serial.printf("Invalid base64 data length: %d\n", base64Data.length());
+        return false;
+    }
+
+    // Decode base64 with bounds checking
     int decodedLen = Base64.decodedLength((char*)base64Data.c_str(), base64Data.length());
+    if (decodedLen <= 0 || decodedLen > 24576) { // Max 24KB compressed
+        Serial.printf("Invalid decoded length: %d\n", decodedLen);
+        return false;
+    }
+    
     uint8_t* compressed = (uint8_t*)malloc(decodedLen);
     if (!compressed) {
         Serial.println("Failed to allocate memory for compressed data");
         return false;
     }
     
-    Base64.decode((char*)compressed, (char*)base64Data.c_str(), base64Data.length());
+    int actualDecoded = Base64.decode((char*)compressed, (char*)base64Data.c_str(), base64Data.length());
+    if (actualDecoded != decodedLen) {
+        free(compressed);
+        Serial.printf("Base64 decode size mismatch: expected %d, got %d\n", decodedLen, actualDecoded);
+        return false;
+    }
 
-    // Decompress using miniz
-    mz_ulong decompressed_size = 8192; // 8KB buffer
+    // Start with smaller buffer and expand if needed
+    mz_ulong decompressed_size = 16384; // Start with 16KB
     uint8_t* decompressed = (uint8_t*)malloc(decompressed_size);
     if (!decompressed) {
         free(compressed);
-        Serial.println("Failed to allocate decompression buffer");
+        Serial.println("Failed to allocate initial decompression buffer");
         return false;
     }
 
     int result = mz_uncompress(decompressed, &decompressed_size, compressed, decodedLen);
+    
+    // If buffer was too small, try with larger buffer
+    if (result == MZ_BUF_ERROR) {
+        free(decompressed);
+        decompressed_size = 32768; // Try 32KB
+        decompressed = (uint8_t*)malloc(decompressed_size);
+        if (!decompressed) {
+            free(compressed);
+            Serial.println("Failed to allocate larger decompression buffer");
+            return false;
+        }
+        result = mz_uncompress(decompressed, &decompressed_size, compressed, decodedLen);
+    }
+    
     free(compressed);
     
     if (result != MZ_OK) {
@@ -220,10 +255,10 @@ bool decodeAnimation(const String& base64Data) {
         return false;
     }
 
-    // Parse header
+    // Parse header with bounds checking
     if (decompressed_size < sizeof(AnimationHeader)) {
         free(decompressed);
-        Serial.println("Data too small for header");
+        Serial.printf("Data too small for header: %d < %d\n", decompressed_size, sizeof(AnimationHeader));
         return false;
     }
 
@@ -235,32 +270,66 @@ bool decodeAnimation(const String& base64Data) {
         return false;
     }
 
-    // Allocate and parse frames
-    size_t frames_size = current_animation.header.frame_count * sizeof(Frame);
-    current_animation.frames = (Frame*)malloc(frames_size);
-    if (!current_animation.frames) {
+    // Validate frame count bounds
+    if (current_animation.header.frame_count > 1000) {
         free(decompressed);
-        Serial.println("Failed to allocate frames");
+        Serial.printf("Frame count too large: %d\n", current_animation.header.frame_count);
         return false;
     }
 
-    memcpy(current_animation.frames, 
-           decompressed + sizeof(AnimationHeader), 
-           frames_size);
+    // Validate note count bounds  
+    if (current_animation.header.note_count > 500) {
+        free(decompressed);
+        Serial.printf("Note count too large: %d\n", current_animation.header.note_count);
+        return false;
+    }
+
+    // Calculate required sizes and validate bounds
+    size_t frames_size = current_animation.header.frame_count * sizeof(Frame);
+    size_t notes_size = current_animation.header.note_count * sizeof(AudioNote);
+    size_t total_required = sizeof(AnimationHeader) + frames_size + notes_size;
+    
+    if (total_required > decompressed_size) {
+        free(decompressed);
+        Serial.printf("Insufficient data: need %d, have %d\n", total_required, decompressed_size);
+        return false;
+    }
+
+    // Allocate and parse frames
+    if (current_animation.header.frame_count > 0) {
+        current_animation.frames = (Frame*)malloc(frames_size);
+        if (!current_animation.frames) {
+            free(decompressed);
+            Serial.println("Failed to allocate frames");
+            return false;
+        }
+
+        memcpy(current_animation.frames, 
+               decompressed + sizeof(AnimationHeader), 
+               frames_size);
+    } else {
+        current_animation.frames = nullptr;
+    }
 
     // Allocate and parse audio notes
-    size_t notes_size = current_animation.header.note_count * sizeof(AudioNote);
-    current_animation.notes = (AudioNote*)malloc(notes_size);
-    if (!current_animation.notes) {
-        free(current_animation.frames);
-        free(decompressed);
-        Serial.println("Failed to allocate notes");
-        return false;
-    }
+    if (current_animation.header.note_count > 0) {
+        current_animation.notes = (AudioNote*)malloc(notes_size);
+        if (!current_animation.notes) {
+            if (current_animation.frames) {
+                free(current_animation.frames);
+                current_animation.frames = nullptr;
+            }
+            free(decompressed);
+            Serial.println("Failed to allocate notes");
+            return false;
+        }
 
-    memcpy(current_animation.notes,
-           decompressed + sizeof(AnimationHeader) + frames_size,
-           notes_size);
+        memcpy(current_animation.notes,
+               decompressed + sizeof(AnimationHeader) + frames_size,
+               notes_size);
+    } else {
+        current_animation.notes = nullptr;
+    }
 
     free(decompressed);
     
@@ -280,38 +349,62 @@ void onWebSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
             
         case WStype_CONNECTED: {
             Serial.println("WebSocket Client Connected to Notification Service");
-            // Send device registration
-            DynamicJsonDocument doc(256);
-            doc["type"] = "register";
-            doc["deviceId"] = deviceId;
-            doc["capabilities"] = "led,audio";
-            String output;
-            serializeJson(doc, output);
-            webSocketClient.sendTXT(output);
+            // Send device registration with heap allocation
+            DynamicJsonDocument* doc = new DynamicJsonDocument(512);
+            if (doc) {
+                (*doc)["type"] = "register";
+                (*doc)["deviceId"] = deviceId;
+                (*doc)["capabilities"] = "led,audio";
+                String output;
+                serializeJson(*doc, output);
+                webSocketClient.sendTXT(output);
+                delete doc;
+            } else {
+                Serial.println("Failed to allocate JSON document for registration");
+            }
             break;
         }
             
         case WStype_TEXT: {
             Serial.printf("WebSocket Client Received: %s\n", payload);
             
-            DynamicJsonDocument doc(1024);
-            DeserializationError error = deserializeJson(doc, payload);
-            
-            if (error) {
-                Serial.printf("JSON parse error: %s\n", error.c_str());
+            // Validate payload length
+            if (length == 0 || length > 8192) {
+                Serial.printf("Invalid payload length: %d\n", length);
                 return;
             }
             
-            if (doc["type"] == "play") {
-                String data = doc["data"];
-                if (decodeAnimation(data)) {
+            // Use heap allocation for large JSON documents
+            DynamicJsonDocument* doc = new DynamicJsonDocument(2048);
+            if (!doc) {
+                Serial.println("Failed to allocate JSON document");
+                return;
+            }
+            
+            DeserializationError error = deserializeJson(*doc, payload, length);
+            
+            if (error) {
+                Serial.printf("JSON parse error: %s\n", error.c_str());
+                delete doc;
+                return;
+            }
+            
+            if ((*doc)["type"] == "play") {
+                String data = (*doc)["data"];
+                if (data.length() > 0 && decodeAnimation(data)) {
                     current_animation.is_playing = true;
                     current_animation.start_time = millis();
                     current_animation.current_frame = 0;
                     current_animation.current_note = 0;
                     Serial.println("Animation started from Notification Service");
+                } else {
+                    Serial.println("Failed to decode animation data");
                 }
+            } else if ((*doc)["type"] == "registration_ack") {
+                Serial.printf("Registration acknowledged: %s\n", (*doc)["status"].as<const char*>());
             }
+            
+            delete doc;
             break;
         }
         
