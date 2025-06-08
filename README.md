@@ -1,59 +1,66 @@
-# LED Notification Service
+# Synesthesia: AI-Powered LED Notification System
 
-Core notification service that manages pattern delivery to LED devices, maintains a pattern library, and provides infrastructure for intelligent pattern selection.
+Multi-package project that brings intelligent LED notifications to your development workflow. Combines embedded hardware, Rust encoding, Node.js services, and AI-powered pattern selection into a cohesive system.
+
+## Architecture
+
+```
+synesthesia/
+├── animation_encoder/          # Rust crate - Binary animation encoding
+├── esp32_firmware/             # PlatformIO - ESP32 LED device firmware  
+└── notification_service/       # Node.js - Notification service + MCP integration
+```
 
 ## Features
 
-- **WebSocket Client**: Connects to ESP32 LED devices
-- **Pattern Library**: Pre-loaded with 10+ notification patterns
-- **HTTP API**: RESTful endpoints for pattern management
-- **Message Queuing**: Reliable delivery with reconnection
-- **Binary Encoding**: Efficient compression for device communication
-- **Fallback Patterns**: Graceful handling of missing patterns
+- **Smart Pattern Selection**: AI chooses appropriate LED patterns based on development context
+- **Embedded Device Control**: ESP32-based LED strips with audio feedback
+- **Binary Protocol**: Efficient Rust-encoded animations with compression
+- **Claude Code Integration**: MCP tools for seamless IDE integration
+- **Pattern Library**: Extensible collection of notification animations
+- **WebSocket Communication**: Real-time device control and status
 
 ## Quick Start
 
 ```bash
-# Install dependencies
-npm install
+# Build all packages
+make build
 
-# Build the project
-npm run build
+# Run tests  
+make test
 
-# Run tests
-npm test
-
-# Start the service
-npm start
-
-# Or run in development mode
-npm run dev
+# Start development environment
+make dev
 ```
 
-## Environment Variables
+## Package Overview
 
-- `PORT`: Server port (default: 3000)
-- `DEVICE_IP`: Default LED device IP address (default: 192.168.1.100)
+### Animation Encoder (Rust)
+Binary encoding library that converts JSON animations to compressed binary format for ESP32 devices.
+
+### ESP32 Firmware (C++)
+Embedded firmware running on ESP32 devices, controls LED strips and audio feedback via WebSocket.
+
+### Notification Service (TypeScript)
+Combined service providing REST API, device management, pattern library, and Claude Code MCP integration.
 
 ## API Endpoints
 
 ### Notifications
-- `POST /api/notify` - Send notification to device
+- `POST /api/notify` - Send notification with pattern_id
+- `GET /health` - Service health status
 
-### Pattern Management
-- `GET /api/patterns` - List all patterns
+### Pattern Management  
+- `GET /api/patterns` - List all patterns with metadata
 - `GET /api/patterns/:id` - Get specific pattern
 - `POST /api/patterns` - Create new pattern
 - `PUT /api/patterns/:id` - Update pattern
 - `DELETE /api/patterns/:id` - Delete pattern
 
-### Health Check
-- `GET /health` - Service health status
-
 ## Example Usage
 
 ```bash
-# Send a notification
+# Send a notification (MCP integration)
 curl -X POST http://localhost:3000/api/notify \
   -H "Content-Type: application/json" \
   -d '{"pattern_id": "gentle_success_v3"}'
@@ -67,49 +74,41 @@ curl http://localhost:3000/health
 
 ## Built-in Patterns
 
-The service comes with 10 pre-loaded patterns:
+The service includes 10+ pre-loaded patterns optimized for development workflows:
 
-1. **gentle_success_v3** - Soft green fade with chimes
-2. **urgent_alert_v1** - Bright red flashing with beeps
-3. **celebration_milestone_v2** - Rainbow colors with victory melody
-4. **default_notification_v1** - Simple blue fade (fallback)
-5. **warning_attention_v1** - Orange warning glow
-6. **info_subtle_v1** - Gentle blue pulse
-7. **progress_building_v1** - Purple gradient build-up
-8. **calm_waiting_v1** - Gentle cyan breathing pattern
-9. **error_prominent_v1** - Red error flash with low tones
-10. **success_dramatic_v1** - Dramatic green flash with fanfare
-
-## Integration with Team 1
-
-The service automatically detects and uses Team 1's Rust encoder library when available. Falls back to TypeScript mock encoder for development.
-
-## Integration with Team 3
-
-Team 3's MCP tool calls the `/api/notify` endpoint with selected pattern IDs. No direct integration needed.
-
-## Architecture
-
-```
-NotificationService
-├── PatternLibrary (in-memory storage)
-├── DeviceManager (WebSocket connections)
-├── EncoderIntegration (Rust/mock encoding)
-└── HTTP API (Express.js)
-```
+1. **gentle_success_v3** - Soft green fade with chimes (test passes, builds)
+2. **urgent_alert_v1** - Bright red flashing (critical errors, production issues)
+3. **celebration_milestone_v2** - Rainbow colors with victory melody (releases, major achievements)
+4. **default_notification_v1** - Simple blue fade (fallback pattern)
+5. **warning_attention_v1** - Orange warning glow (warnings, deprecations)
+6. **info_subtle_v1** - Gentle blue pulse (info notifications)
+7. **progress_building_v1** - Purple gradient build-up (CI/CD progress)
+8. **calm_waiting_v1** - Gentle cyan breathing (waiting states)
+9. **error_prominent_v1** - Red error flash with low tones (build failures)
+10. **success_dramatic_v1** - Dramatic green flash with fanfare (major successes)
 
 ## Development
 
 ```bash
-# Type checking
-npm run typecheck
+# Individual package commands
+cd animation_encoder && cargo test
+cd esp32_firmware && pio test  
+cd notification_service && npm test
 
-# Linting
-npm run lint
-
-# Run tests with coverage
-npm test -- --coverage
+# Top-level commands
+make test           # Test all packages
+make build          # Build all packages
+make dev            # Development environment
+make clean          # Clean build artifacts
 ```
+
+## MCP Integration
+
+The notification service includes Claude Code MCP integration for intelligent pattern selection:
+
+- **Context-aware**: Analyzes git status, project state, time of day
+- **AI-powered**: Uses Claude to select appropriate patterns
+- **Seamless**: Integrates directly into Claude Code workflows
 
 ## License
 
