@@ -3,54 +3,36 @@ import { PlayCommand, PlayResponse } from '../types';
 import logger from '../utils/logger';
 
 export class DeviceConnection {
-  private ws?: WebSocket;
-  private deviceIP: string;
-  private isConnected: boolean = false;
-  private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 5;
-  private reconnectTimeouts: number[] = [1000, 2000, 4000, 8000, 30000];
+  private ws: WebSocket;
+  private deviceId: string;
+  private capabilities: string[];
+  private lastSeen: Date;
 
-  constructor(deviceIP: string) {
-    this.deviceIP = deviceIP;
+  constructor(ws: WebSocket, deviceId: string, capabilities: string[] = []) {
+    this.ws = ws;
+    this.deviceId = deviceId;
+    this.capabilities = capabilities;
+    this.lastSeen = new Date();
+    
+    this.setupEventHandlers();
   }
 
-  async connect(): Promise<boolean> {
-    return new Promise((resolve) => {
-      try {
-        // Support deviceIP with port (e.g., "localhost:8080") or default to port 81
-        const wsUrl = this.deviceIP.includes(':') 
-          ? `ws://${this.deviceIP}` 
-          : `ws://${this.deviceIP}:81`;
-        this.ws = new WebSocket(wsUrl);
-        
-        this.ws.on('open', () => {
-          logger.info(`Connected to device at ${this.deviceIP}`);
-          this.isConnected = true;
-          this.reconnectAttempts = 0;
-          resolve(true);
-        });
+  private setupEventHandlers(): void {
+    this.ws.on('close', () => {
+      logger.info(`Device ${this.deviceId} disconnected`);
+    });
 
-        this.ws.on('close', () => {
-          logger.info(`Disconnected from device at ${this.deviceIP}`);
-          this.isConnected = false;
-          this.attemptReconnect();
-        });
+    this.ws.on('error', (error) => {
+      logger.error(`WebSocket error for device ${this.deviceId}:`, error);
+    });
 
-        this.ws.on('error', (error) => {
-          logger.error(`WebSocket error for ${this.deviceIP}:`, error);
-          this.isConnected = false;
-          resolve(false);
-        });
-
-      } catch (error) {
-        logger.error(`Failed to connect to ${this.deviceIP}:`, error);
-        resolve(false);
-      }
+    this.ws.on('pong', () => {
+      this.lastSeen = new Date();
     });
   }
 
   async sendAnimation(encodedData: Uint8Array): Promise<PlayResponse> {
-    if (!this.isConnected || !this.ws) {
+    if (!this.isDeviceConnected()) {
       throw new Error('Device not connected');
     }
 
@@ -60,28 +42,29 @@ export class DeviceConnection {
     };
 
     return new Promise((resolve, reject) => {
-      if (!this.ws) {
-        reject(new Error('WebSocket not available'));
-        return;
-      }
-
       const timeout = setTimeout(() => {
         reject(new Error('Device response timeout'));
       }, 5000);
 
-      this.ws.once('message', (data) => {
+      const handleMessage = (data: WebSocket.Data) => {
         clearTimeout(timeout);
+        this.ws.off('message', handleMessage);
+        
         try {
           const response: PlayResponse = JSON.parse(data.toString());
           resolve(response);
         } catch {
-          reject(new Error('Invalid response format'));
+          // If no response expected, assume success
+          resolve({ status: 'playing', started_at: new Date().toISOString() });
         }
-      });
+      };
+
+      this.ws.on('message', handleMessage);
 
       this.ws.send(JSON.stringify(message), (error) => {
         if (error) {
           clearTimeout(timeout);
+          this.ws.off('message', handleMessage);
           reject(error);
         }
       });
@@ -89,32 +72,34 @@ export class DeviceConnection {
   }
 
   isDeviceConnected(): boolean {
-    return this.isConnected && this.ws?.readyState === WebSocket.OPEN;
+    return this.ws.readyState === WebSocket.OPEN;
   }
 
   disconnect(): void {
-    if (this.ws) {
+    if (this.ws.readyState === WebSocket.OPEN) {
       this.ws.close();
-      this.ws = undefined;
     }
-    this.isConnected = false;
   }
 
-  private attemptReconnect(): void {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      logger.warn(`Max reconnection attempts reached for ${this.deviceIP}`);
-      return;
+  getDeviceId(): string {
+    return this.deviceId;
+  }
+
+  getCapabilities(): string[] {
+    return [...this.capabilities];
+  }
+
+  getLastSeen(): Date {
+    return this.lastSeen;
+  }
+
+  getWebSocket(): WebSocket {
+    return this.ws;
+  }
+
+  ping(): void {
+    if (this.isDeviceConnected()) {
+      this.ws.ping();
     }
-
-    const timeout = this.reconnectTimeouts[this.reconnectAttempts] || 30000;
-    logger.info(`Attempting to reconnect to ${this.deviceIP} in ${timeout}ms...`);
-
-    setTimeout(async () => {
-      this.reconnectAttempts++;
-      const connected = await this.connect();
-      if (!connected) {
-        logger.warn(`Reconnection attempt ${this.reconnectAttempts} failed for ${this.deviceIP}`);
-      }
-    }, timeout);
   }
 }

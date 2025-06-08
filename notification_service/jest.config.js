@@ -5,7 +5,16 @@ export default {
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   transform: {
-    '^.+\\.ts$': ['ts-jest', { useESM: true }],
+    '^.+\\.ts$': ['ts-jest', { 
+      useESM: true,
+      tsconfig: {
+        target: 'ES2020',
+        module: 'esnext',
+        moduleResolution: 'node',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true
+      }
+    }],
   },
   collectCoverageFrom: [
     'src/**/*.ts',

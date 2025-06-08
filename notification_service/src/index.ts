@@ -20,22 +20,10 @@ app.use(createRoutes(notificationService, patternLibrary));
 
 async function startServer() {
   try {
-    const defaultDeviceAddress = process.env.DEVICE_ADDRESS || '192.168.1.100';
-    
-    console.log(`Attempting to connect to default device: ${defaultDeviceAddress}`);
-    const connected = await deviceManager.addDevice(defaultDeviceAddress);
-    
-    if (connected) {
-      console.log(`Successfully connected to device: ${defaultDeviceAddress}`);
-    } else {
-      console.warn(`Could not connect to device: ${defaultDeviceAddress}, continuing without device`);
-    }
-
     // Start HTTP server
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`LED Notification Service running on port ${PORT}`);
       console.log(`Pattern library loaded with ${patternLibrary.getAllPatterns().length} patterns`);
-      console.log(`Connected devices: ${deviceManager.getConnectedDevices().length}`);
       console.log('Health check: GET /health');
       console.log('API endpoints:');
       console.log('  POST /api/notify - Send notification');
@@ -44,7 +32,12 @@ async function startServer() {
       console.log('  POST /api/patterns - Create pattern');
       console.log('  PUT /api/patterns/:id - Update pattern');
       console.log('  DELETE /api/patterns/:id - Delete pattern');
+      console.log('WebSocket server available at ws://localhost:' + PORT + '/ws');
+      console.log('Waiting for ESP32 devices to connect...');
     });
+
+    // Start WebSocket server for device connections
+    deviceManager.startWebSocketServer(server);
 
     // Start MCP server if in MCP mode (temporarily disabled for build)
     if (process.env.NODE_ENV === 'mcp' || process.argv.includes('--mcp')) {
@@ -59,9 +52,7 @@ async function startServer() {
 
 process.on('SIGINT', () => {
   console.log('Shutting down gracefully...');
-  deviceManager.getAllDevices().forEach(deviceIP => {
-    deviceManager.removeDevice(deviceIP);
-  });
+  deviceManager.shutdown();
   process.exit(0);
 });
 

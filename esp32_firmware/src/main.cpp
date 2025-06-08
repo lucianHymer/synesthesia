@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include <WiFiManager.h>
 #include <WebSocketsClient.h>
+#include <WebServer.h>
 #include <ArduinoJson.h>
 #include <FastLED.h>
 #include <driver/ledc.h>
@@ -15,6 +16,7 @@
 CRGB leds[NUM_LEDS];
 WebSocketsClient webSocketClient;
 WiFiManager wifiManager;
+WebServer resetServer(80);
 
 // Notification service configuration
 char notificationHost[40] = "192.168.1.100"; // Default, can be configured
@@ -338,6 +340,90 @@ void saveConfigCallback() {
     FastLED.show();
 }
 
+void handleResetPage() {
+    String wifiStatus = (WiFi.status() == WL_CONNECTED) ? WiFi.SSID() : "Not Connected";
+    String deviceIP = (WiFi.status() == WL_CONNECTED) ? WiFi.localIP().toString() : "No IP";
+    
+    String html = "<!DOCTYPE html><html><head>";
+    html += "<title>ESP32 LED Device - Reset Options</title>";
+    html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
+    html += "<style>body{font-family:Arial;margin:40px;background:#f0f0f0}";
+    html += ".container{background:white;padding:20px;border-radius:8px;max-width:500px}";
+    html += ".status{background:#e8f4fd;padding:15px;border-radius:5px;margin:20px 0}";
+    html += ".button{display:inline-block;background:#007cba;color:white;padding:12px 24px;";
+    html += "text-decoration:none;border-radius:5px;margin:10px 5px;border:none;cursor:pointer}";
+    html += ".button:hover{background:#005a87}";
+    html += ".danger{background:#d32f2f}.danger:hover{background:#b71c1c}";
+    html += "</style></head><body>";
+    
+    html += "<div class='container'>";
+    html += "<h1>ESP32 LED Device</h1>";
+    html += "<div class='status'>";
+    html += "<h3>Current Status</h3>";
+    html += "<p><strong>WiFi:</strong> " + wifiStatus + "</p>";
+    html += "<p><strong>IP Address:</strong> " + deviceIP + "</p>";
+    html += "<p><strong>Device ID:</strong> " + deviceId + "</p>";
+    html += "<p><strong>Service:</strong> " + String(notificationHost) + ":" + String(notificationPort) + "</p>";
+    html += "<p><strong>WebSocket:</strong> ";
+    html += (webSocketClient.isConnected() ? "Connected" : "Disconnected");
+    html += "</p>";
+    html += "</div>";
+    
+    html += "<h3>Reset Options</h3>";
+    html += "<p><strong>Reset Configuration</strong> will wipe all settings and restart setup mode.</p>";
+    html += "<a href='/reset' class='button danger' onclick='return confirm(\"Reset all configuration? Device will restart in setup mode.\")'>Reset Configuration</a>";
+    html += "<br>";
+    html += "<p><strong>Restart Device</strong> will reboot but keep current settings.</p>";
+    html += "<a href='/reboot' class='button' onclick='return confirm(\"Restart device?\")'>Restart Device</a>";
+    
+    html += "<br><br><a href='/' class='button'>Refresh Status</a>";
+    html += "</div></body></html>";
+    
+    resetServer.send(200, "text/html", html);
+}
+
+void handleReset() {
+    String html = "<!DOCTYPE html><html><head>";
+    html += "<title>Resetting Device</title>";
+    html += "<meta http-equiv='refresh' content='15;url=/'>";
+    html += "<style>body{font-family:Arial;text-align:center;margin:40px;background:#f0f0f0}";
+    html += ".container{background:white;padding:40px;border-radius:8px;max-width:400px;margin:0 auto}</style>";
+    html += "</head><body>";
+    html += "<div class='container'>";
+    html += "<h1>Resetting Configuration</h1>";
+    html += "<p>Device configuration has been cleared.</p>";
+    html += "<p>The device will restart in setup mode in a few seconds.</p>";
+    html += "<p>Look for the <strong>ESP32_LED_Setup</strong> WiFi network to reconfigure.</p>";
+    html += "</div></body></html>";
+    
+    resetServer.send(200, "text/html", html);
+    
+    Serial.println("Reset requested via web interface");
+    delay(2000);
+    wifiManager.resetSettings();
+    ESP.restart();
+}
+
+void handleReboot() {
+    String html = "<!DOCTYPE html><html><head>";
+    html += "<title>Rebooting Device</title>";
+    html += "<meta http-equiv='refresh' content='10;url=/'>";
+    html += "<style>body{font-family:Arial;text-align:center;margin:40px;background:#f0f0f0}";
+    html += ".container{background:white;padding:40px;border-radius:8px;max-width:400px;margin:0 auto}</style>";
+    html += "</head><body>";
+    html += "<div class='container'>";
+    html += "<h1>Rebooting Device</h1>";
+    html += "<p>Device is restarting with current configuration.</p>";
+    html += "<p>This page will refresh automatically in 10 seconds.</p>";
+    html += "</div></body></html>";
+    
+    resetServer.send(200, "text/html", html);
+    
+    Serial.println("Reboot requested via web interface");
+    delay(2000);
+    ESP.restart();
+}
+
 void setup() {
     Serial.begin(115200);
     Serial.println("ESP32 Animation Device Starting...");
@@ -375,10 +461,16 @@ void setup() {
         ESP.restart();
     }
     
-    // Connected to WiFi
+    // Connected to WiFi - now enable dual mode for always-on reset AP
+    WiFi.mode(WIFI_AP_STA);
+    WiFi.softAP("ESP32_LED_Setup", "setup123");
+    
     Serial.println("Connected to WiFi!");
-    Serial.print("IP address: ");
+    Serial.print("Station IP address: ");
     Serial.println(WiFi.localIP());
+    Serial.print("AP IP address: ");
+    Serial.println(WiFi.softAPIP());
+    Serial.println("Reset interface available at: http://192.168.4.1");
     
     // Update configuration from custom parameters - safe copy to our buffers
     strcpy(notificationHost, custom_host.getValue());
@@ -390,6 +482,13 @@ void setup() {
     // Show connection success
     fill_solid(leds, NUM_LEDS, CRGB::Green);
     FastLED.show();
+    
+    // Setup reset server routes
+    resetServer.on("/", handleResetPage);
+    resetServer.on("/reset", handleReset);
+    resetServer.on("/reboot", handleReboot);
+    resetServer.begin();
+    Serial.println("Reset server started on AP");
     
     // Connect to notification service
     webSocketClient.begin(notificationHost, notificationPort, "/ws");
@@ -425,6 +524,7 @@ void setup() {
 
 void loop() {
     webSocketClient.loop();
+    resetServer.handleClient();  // Handle reset web interface requests
     
     // Check WiFi connection
     if (WiFi.status() != WL_CONNECTED) {
