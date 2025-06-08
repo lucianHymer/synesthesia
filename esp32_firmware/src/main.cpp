@@ -1,5 +1,6 @@
 #include <WiFi.h>
-#include <WebSocketsServer.h>
+#include <WiFiManager.h>
+#include <WebSocketsClient.h>
 #include <ArduinoJson.h>
 #include <FastLED.h>
 #include <driver/ledc.h>
@@ -10,13 +11,17 @@
 #define NUM_LEDS 20
 #define AUDIO_PIN_1 25
 #define AUDIO_PIN_2 26
-#define WEBSOCKET_PORT 81
-
-const char* ssid = "ESP32_Animation";
-const char* password = "animation123";
 
 CRGB leds[NUM_LEDS];
-WebSocketsServer webSocket = WebSocketsServer(WEBSOCKET_PORT);
+WebSocketsClient webSocketClient;
+WiFiManager wifiManager;
+
+// Notification service configuration
+char notificationHost[40] = "192.168.1.100"; // Default, can be configured
+char notificationPortStr[6] = "3001";
+int notificationPort = 3001;
+char deviceIdStr[40] = "esp32_led_strip_01";
+String deviceId = "esp32_led_strip_01";
 
 struct AnimationHeader {
     uint16_t version;
@@ -265,27 +270,33 @@ bool decodeAnimation(const String& base64Data) {
     return true;
 }
 
-void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+void onWebSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
     switch(type) {
         case WStype_DISCONNECTED:
-            Serial.printf("WebSocket [%u] Disconnected\n", num);
+            Serial.println("WebSocket Client Disconnected");
             break;
             
-        case WStype_CONNECTED:
-            Serial.printf("WebSocket [%u] Connected from %s\n", num, 
-                         webSocket.remoteIP(num).toString().c_str());
-            webSocket.sendTXT(num, "{\"status\":\"connected\"}");
+        case WStype_CONNECTED: {
+            Serial.println("WebSocket Client Connected to Notification Service");
+            // Send device registration
+            DynamicJsonDocument doc(256);
+            doc["type"] = "register";
+            doc["deviceId"] = deviceId;
+            doc["capabilities"] = "led,audio";
+            String output;
+            serializeJson(doc, output);
+            webSocketClient.sendTXT(output);
             break;
+        }
             
         case WStype_TEXT: {
-            Serial.printf("WebSocket [%u] Received: %s\n", num, payload);
+            Serial.printf("WebSocket Client Received: %s\n", payload);
             
             DynamicJsonDocument doc(1024);
             DeserializationError error = deserializeJson(doc, payload);
             
             if (error) {
                 Serial.printf("JSON parse error: %s\n", error.c_str());
-                webSocket.sendTXT(num, "{\"status\":\"error\",\"message\":\"Invalid JSON\"}");
                 return;
             }
             
@@ -296,14 +307,8 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
                     current_animation.start_time = millis();
                     current_animation.current_frame = 0;
                     current_animation.current_note = 0;
-                    
-                    webSocket.sendTXT(num, "{\"status\":\"playing\"}");
-                    Serial.println("Animation started");
-                } else {
-                    webSocket.sendTXT(num, "{\"status\":\"error\",\"message\":\"Failed to decode animation\"}");
+                    Serial.println("Animation started from Notification Service");
                 }
-            } else {
-                webSocket.sendTXT(num, "{\"status\":\"error\",\"message\":\"Unknown command\"}");
             }
             break;
         }
@@ -311,6 +316,26 @@ void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t leng
         default:
             break;
     }
+}
+
+void configModeCallback(WiFiManager *myWiFiManager) {
+    Serial.println("Entered config mode");
+    Serial.println(WiFi.softAPIP());
+    Serial.println(myWiFiManager->getConfigPortalSSID());
+    
+    // Indicate config mode with LED pattern
+    fill_solid(leds, NUM_LEDS, CRGB::Blue);
+    FastLED.show();
+}
+
+void saveConfigCallback() {
+    Serial.println("Config saved");
+    // Flash green to indicate save
+    fill_solid(leds, NUM_LEDS, CRGB::Green);
+    FastLED.show();
+    delay(500);
+    fill_solid(leds, NUM_LEDS, CRGB::Black);
+    FastLED.show();
 }
 
 void setup() {
@@ -326,14 +351,51 @@ void setup() {
     // Initialize audio
     setupAudioPWM();
 
-    // Setup WiFi AP
-    WiFi.softAP(ssid, password);
-    Serial.print("AP IP address: ");
-    Serial.println(WiFi.softAPIP());
-
-    // Initialize WebSocket server
-    webSocket.begin();
-    webSocket.onEvent(onWebSocketEvent);
+    // Configure WiFiManager
+    wifiManager.setDebugOutput(true);
+    wifiManager.setAPCallback(configModeCallback);
+    wifiManager.setSaveConfigCallback(saveConfigCallback);
+    wifiManager.setConfigPortalTimeout(180); // 3 minutes timeout
+    
+    // Custom parameters for notification service host
+    WiFiManagerParameter custom_host("host", "Notification Host", notificationHost, 40);
+    WiFiManagerParameter custom_port("port", "Notification Port", notificationPortStr, 6);
+    WiFiManagerParameter custom_device_id("device_id", "Device ID", deviceIdStr, 40);
+    
+    wifiManager.addParameter(&custom_host);
+    wifiManager.addParameter(&custom_port);
+    wifiManager.addParameter(&custom_device_id);
+    
+    // Try to connect, create AP if fails
+    if (!wifiManager.autoConnect("ESP32_LED_Setup", "setup123")) {
+        Serial.println("Failed to connect and hit timeout");
+        fill_solid(leds, NUM_LEDS, CRGB::Red);
+        FastLED.show();
+        delay(3000);
+        ESP.restart();
+    }
+    
+    // Connected to WiFi
+    Serial.println("Connected to WiFi!");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+    
+    // Update configuration from custom parameters - safe copy to our buffers
+    strcpy(notificationHost, custom_host.getValue());
+    strcpy(notificationPortStr, custom_port.getValue());
+    notificationPort = atoi(notificationPortStr);
+    strcpy(deviceIdStr, custom_device_id.getValue());
+    deviceId = String(deviceIdStr);
+    
+    // Show connection success
+    fill_solid(leds, NUM_LEDS, CRGB::Green);
+    FastLED.show();
+    
+    // Connect to notification service
+    webSocketClient.begin(notificationHost, notificationPort, "/ws");
+    webSocketClient.onEvent(onWebSocketClientEvent);
+    webSocketClient.setReconnectInterval(5000);
+    Serial.printf("Connecting to Notification Service at %s:%d\n", notificationHost, notificationPort);
 
     // Create tasks
     xTaskCreatePinnedToCore(
@@ -362,6 +424,16 @@ void setup() {
 }
 
 void loop() {
-    webSocket.loop();
+    webSocketClient.loop();
+    
+    // Check WiFi connection
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("WiFi disconnected, restarting...");
+        fill_solid(leds, NUM_LEDS, CRGB::Red);
+        FastLED.show();
+        delay(3000);
+        ESP.restart();
+    }
+    
     delay(10);
 }

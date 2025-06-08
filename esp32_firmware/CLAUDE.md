@@ -29,15 +29,16 @@ pio device monitor            # Interactive device monitoring
 
 ### Core Components
 - **main.cpp** - Main application loop and initialization
-- WiFi connection management
+- WiFiManager for easy WiFi configuration portal
 - WebSocket client for notification service communication
 - LED strip control using FastLED library
 
 ### Key Features
+- **WiFi Configuration** - WiFiManager portal for easy setup
 - **LED Control** - FastLED-based RGB LED strip management
 - **WebSocket Client** - Real-time communication with notification service
 - **Binary Protocol** - Efficient animation data decoding
-- **WiFi Management** - Automatic connection and reconnection
+- **Auto-reconnection** - Automatic restart on WiFi disconnection
 
 ### Communication Protocol
 - WebSocket connection to notification service
@@ -77,9 +78,10 @@ pio device monitor            # Interactive device monitoring
 ## Configuration
 
 ### WiFi Setup
-- Configure SSID and password in main.cpp
-- Automatic reconnection on connection loss
-- Status indicators via LED or serial output
+- First boot creates "ESP32_LED_Setup" AP for configuration
+- Connect and configure via web portal at 192.168.4.1
+- Configurable notification service host, port, and device ID
+- LED status indicators: Blue=setup, Green=connected, Red=error
 
 ### Build Configuration
 - **platformio.ini** - Build settings and dependencies

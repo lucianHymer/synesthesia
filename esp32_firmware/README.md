@@ -70,28 +70,46 @@ pio run --target clean
 
 ## Configuration
 
-Update `platformio.ini` for your setup:
+The device configuration is managed through the WiFi portal. No hardcoded credentials needed!
 
-```ini
-[env:esp32dev]
-platform = espressif32
-board = esp32dev
-framework = arduino
+For development, you can modify default values in `main.cpp`:
 
-# WiFi credentials (for development)
-build_flags = 
-  -DWIFI_SSID='"YourWiFi"'
-  -DWIFI_PASSWORD='"YourPassword"'
+```cpp
+const char* notificationHost = "192.168.1.100"; // Your notification service IP
+const int notificationPort = 3001;
+String deviceId = "esp32_led_strip_01";
 ```
 
 ## WiFi Setup
 
-The device creates a WiFi access point on first boot for configuration:
+The device uses WiFiManager for easy WiFi configuration:
 
-1. Connect to `Synesthesia-Setup` network
-2. Navigate to `http://192.168.4.1`
-3. Enter your WiFi credentials
-4. Device will connect and display its IP address
+### First Time Setup
+
+1. Power on the device - LEDs will turn blue indicating setup mode
+2. On your phone/computer, connect to WiFi network "ESP32_LED_Setup" (password: "setup123")
+3. A configuration portal should open automatically
+   - If not, open browser to http://192.168.4.1
+4. Click "Configure WiFi" and enter:
+   - Select your WiFi network from the scan list
+   - Enter WiFi password
+   - Notification Host IP (default: 192.168.1.100)
+   - Notification Port (default: 3001)
+   - Device ID (default: esp32_led_strip_01)
+5. Click Save - LEDs will flash green briefly
+6. Device will restart and connect to your WiFi
+
+### LED Status Indicators
+
+- **Blue solid**: Configuration/AP mode active
+- **Green solid**: Connected to WiFi successfully  
+- **Green flash**: Configuration saved
+- **Red solid**: Connection failed (will restart)
+- **Animation Playing**: Pattern-specific colors
+
+### Operation
+
+Once WiFi is configured, the device always operates as a client connecting to the notification service. If WiFi connection is lost, the device will automatically restart and attempt to reconnect.
 
 ## Animation Format
 
@@ -130,11 +148,22 @@ pio device monitor --baud 115200
 - Test with simple color patterns
 
 **WebSocket connection fails:**
-- Check WiFi credentials
-- Verify network connectivity
-- Monitor serial output for error messages
+- Ensure WiFi is properly configured via portal
+- Verify notification service is running
+- Check notification host IP and port settings
+- Monitor serial output for connection status
+
+**WiFi Configuration Issues:**
+- Portal timeout is 3 minutes - reconnect if needed
+- Device restarts automatically after timeout
+- Blue LED indicates configuration mode
+- Check serial monitor for portal IP address
 
 **Audio not working:**
 - Check PWM pin connections (GPIO 25/26)
 - Verify audio output hardware
 - Test with simple tone generation
+
+**Reset WiFi Settings:**
+- Power cycle device twice within 10 seconds
+- Or add a reset button to trigger `wifiManager.resetSettings()`
