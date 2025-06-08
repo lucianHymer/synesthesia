@@ -4,6 +4,9 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use std::io::Write;
 use thiserror::Error;
 
+#[cfg(feature = "napi")]
+use napi_derive::napi;
+
 #[derive(Error, Debug)]
 pub enum EncodingError {
     #[error("Animation too long: {0} frames (max 200)")]
@@ -27,6 +30,7 @@ pub enum EncodingError {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "napi", napi(object))]
 pub struct RGB {
     pub r: u8,
     pub g: u8,
@@ -34,12 +38,14 @@ pub struct RGB {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "napi", napi(object))]
 pub struct Frame {
     pub time_ms: u16,
     pub leds: Vec<RGB>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "napi", napi(object))]
 pub struct AudioNote {
     pub start_ms: u16,
     pub duration_ms: u16,
@@ -49,6 +55,7 @@ pub struct AudioNote {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "napi", napi(object))]
 pub struct Animation {
     pub duration_ms: u16,
     pub frames: Vec<Frame>,
@@ -189,6 +196,13 @@ fn compress_data(data: &[u8]) -> Result<Vec<u8>, EncodingError> {
         .map_err(|e| EncodingError::CompressionError(e.to_string()))?;
     encoder.finish()
         .map_err(|e| EncodingError::CompressionError(e.to_string()))
+}
+
+#[cfg(feature = "napi")]
+#[napi]
+pub fn encode_animation_js(animation: Animation) -> napi::Result<Vec<u8>> {
+    encode_animation(&animation)
+        .map_err(|e| napi::Error::from_reason(e.to_string()))
 }
 
 #[cfg(test)]

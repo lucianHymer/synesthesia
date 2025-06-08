@@ -1,22 +1,37 @@
-export interface Animation {
-  name: string;
-  duration_ms: number;
-  fps: 20;
-  frames: Frame[];
-  audio: AudioNote[];
+// Waveform constants for better DX
+export const WAVEFORMS = {
+  SQUARE: 0,
+  TRIANGLE: 1,
+  SAWTOOTH: 2,
+  NOISE: 3
+} as const;
+
+export type WaveformType = typeof WAVEFORMS[keyof typeof WAVEFORMS];
+
+// RGB type for better readability
+export interface RGB {
+  r: number;
+  g: number;
+  b: number;
 }
 
 export interface Frame {
-  time_ms: number;
-  leds: [number, number, number][];
+  timeMs: number;
+  leds: RGB[];
 }
 
 export interface AudioNote {
-  start_ms: number;
-  duration_ms: number;
-  frequency: number;
+  startMs: number;
+  durationMs: number;
+  frequencyHz: number;
   voice: 0 | 1;
-  waveform: "square" | "triangle" | "sawtooth" | "noise";
+  waveform: WaveformType;
+}
+
+export interface Animation {
+  durationMs: number;
+  frames: Frame[];
+  audioNotes: AudioNote[];
 }
 
 export interface PatternMetadata {

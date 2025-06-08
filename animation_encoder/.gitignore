@@ -1,0 +1,5 @@
+# Native Node.js modules
+*.node
+
+# Package lock files (auto-generated)
+package-lock.json

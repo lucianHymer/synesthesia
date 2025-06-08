@@ -1,0 +1,45 @@
+{
+  "name": "animation-encoder",
+  "version": "0.1.0",
+  "description": "Binary encoder for LED animations targeting ESP32 devices",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "napi build --platform --release --features napi",
+    "build:debug": "napi build --platform --features napi",
+    "prepublishOnly": "napi prepublish -t npm",
+    "artifacts": "napi artifacts",
+    "version": "napi version"
+  },
+  "napi": {
+    "name": "animation-encoder",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "x86_64-pc-windows-msvc",
+        "i686-pc-windows-msvc",
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin",
+        "x86_64-unknown-linux-gnu",
+        "x86_64-unknown-linux-musl",
+        "aarch64-unknown-linux-gnu",
+        "i686-unknown-linux-gnu",
+        "armv7-unknown-linux-gnueabihf",
+        "aarch64-linux-android",
+        "armv7-linux-androideabi",
+        "x86_64-unknown-freebsd",
+        "aarch64-unknown-linux-musl",
+        "aarch64-pc-windows-msvc"
+      ]
+    }
+  },
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.0"
+  },
+  "repository": "https://github.com/yourname/synesthesia",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ]
+}

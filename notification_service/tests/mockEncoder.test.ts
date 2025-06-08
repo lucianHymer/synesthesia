@@ -1,19 +1,17 @@
 import { encodeAnimation, validateEncodedData } from '../src/encoder/mockEncoder';
-import { Animation } from '../src/types';
+import { Animation, WAVEFORMS } from '../src/types';
 
 describe('mockEncoder', () => {
   const sampleAnimation: Animation = {
-    name: 'test_animation',
-    duration_ms: 1000,
-    fps: 20,
+    durationMs: 1000,
     frames: [
-      { time_ms: 0, leds: Array(20).fill([255, 0, 0]) },
-      { time_ms: 500, leds: Array(20).fill([0, 255, 0]) },
-      { time_ms: 1000, leds: Array(20).fill([0, 0, 255]) }
+      { timeMs: 0, leds: Array(20).fill({ r: 255, g: 0, b: 0 }) },
+      { timeMs: 500, leds: Array(20).fill({ r: 0, g: 255, b: 0 }) },
+      { timeMs: 1000, leds: Array(20).fill({ r: 0, g: 0, b: 255 }) }
     ],
-    audio: [
-      { start_ms: 0, duration_ms: 200, frequency: 440, voice: 0, waveform: 'square' },
-      { start_ms: 500, duration_ms: 300, frequency: 880, voice: 1, waveform: 'triangle' }
+    audioNotes: [
+      { startMs: 0, durationMs: 200, frequencyHz: 440, voice: 0, waveform: WAVEFORMS.SQUARE },
+      { startMs: 500, durationMs: 300, frequencyHz: 880, voice: 1, waveform: WAVEFORMS.TRIANGLE }
     ]
   };
 
@@ -42,7 +40,7 @@ describe('mockEncoder', () => {
   test('should handle animation with no audio', () => {
     const animationNoAudio: Animation = {
       ...sampleAnimation,
-      audio: []
+      audioNotes: []
     };
 
     const encoded = encodeAnimation(animationNoAudio);
@@ -55,8 +53,8 @@ describe('mockEncoder', () => {
   test('should handle animation with single frame', () => {
     const singleFrameAnimation: Animation = {
       ...sampleAnimation,
-      duration_ms: 100,
-      frames: [{ time_ms: 0, leds: Array(20).fill([255, 255, 255]) }]
+      durationMs: 100,
+      frames: [{ timeMs: 0, leds: Array(20).fill({ r: 255, g: 255, b: 255 }) }]
     };
 
     const encoded = encodeAnimation(singleFrameAnimation);
@@ -66,13 +64,12 @@ describe('mockEncoder', () => {
   });
 
   test('should encode different waveforms correctly', () => {
-    const waveformTypes: Array<'square' | 'triangle' | 'sawtooth' | 'noise'> = 
-      ['square', 'triangle', 'sawtooth', 'noise'];
+    const waveformTypes = [WAVEFORMS.SQUARE, WAVEFORMS.TRIANGLE, WAVEFORMS.SAWTOOTH, WAVEFORMS.NOISE];
 
     waveformTypes.forEach(waveform => {
       const animation: Animation = {
         ...sampleAnimation,
-        audio: [{ start_ms: 0, duration_ms: 100, frequency: 440, voice: 0, waveform }]
+        audioNotes: [{ startMs: 0, durationMs: 100, frequencyHz: 440, voice: 0, waveform }]
       };
 
       const encoded = encodeAnimation(animation);
@@ -84,19 +81,21 @@ describe('mockEncoder', () => {
 
   test('should handle large animations efficiently', () => {
     const largeAnimation: Animation = {
-      name: 'large_test',
-      duration_ms: 5000,
-      fps: 20,
+      durationMs: 5000,
       frames: Array.from({ length: 100 }, (_, i) => ({
-        time_ms: i * 50,
-        leds: Array(20).fill([Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255)])
+        timeMs: i * 50,
+        leds: Array(20).fill({ 
+          r: Math.floor(Math.random() * 255), 
+          g: Math.floor(Math.random() * 255), 
+          b: Math.floor(Math.random() * 255) 
+        })
       })),
-      audio: Array.from({ length: 20 }, (_, i) => ({
-        start_ms: i * 250,
-        duration_ms: 200,
-        frequency: 440 + i * 50,
+      audioNotes: Array.from({ length: 20 }, (_, i) => ({
+        startMs: i * 250,
+        durationMs: 200,
+        frequencyHz: 440 + i * 50,
         voice: i % 2 as 0 | 1,
-        waveform: 'square' as const
+        waveform: WAVEFORMS.SQUARE
       }))
     };
 

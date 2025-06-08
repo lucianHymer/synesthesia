@@ -1,4 +1,4 @@
-import { PatternWithMetadata } from "../types";
+import { PatternWithMetadata, WAVEFORMS } from "../types";
 
 export class PatternLibrary {
   private patterns: Map<string, PatternWithMetadata> = new Map();
@@ -53,28 +53,26 @@ export class PatternLibrary {
       {
         id: "gentle_success_v1",
         animation: {
-          name: "gentle_success_v1",
-          duration_ms: 3000,
-          fps: 20,
+          durationMs: 3000,
           frames: [
-            { time_ms: 0, leds: Array(20).fill([0, 0, 0]) },
-            { time_ms: 1500, leds: Array(20).fill([0, 255, 100]) },
-            { time_ms: 3000, leds: Array(20).fill([0, 64, 0]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 0, g: 0, b: 0 }) },
+            { timeMs: 1500, leds: Array(20).fill({ r: 0, g: 255, b: 100 }) },
+            { timeMs: 3000, leds: Array(20).fill({ r: 0, g: 64, b: 0 }) },
           ],
-          audio: [
+          audioNotes: [
             {
-              start_ms: 0,
-              duration_ms: 200,
-              frequency: 523,
+              startMs: 0,
+              durationMs: 200,
+              frequencyHz: 523,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 200,
-              duration_ms: 300,
-              frequency: 659,
+              startMs: 200,
+              durationMs: 300,
+              frequencyHz: 659,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
           ],
         },
@@ -91,30 +89,28 @@ export class PatternLibrary {
       {
         id: "urgent_alert_v1",
         animation: {
-          name: "urgent_alert_v1",
-          duration_ms: 2000,
-          fps: 20,
+          durationMs: 2000,
           frames: [
-            { time_ms: 0, leds: Array(20).fill([255, 0, 0]) },
-            { time_ms: 500, leds: Array(20).fill([0, 0, 0]) },
-            { time_ms: 1000, leds: Array(20).fill([255, 0, 0]) },
-            { time_ms: 1500, leds: Array(20).fill([0, 0, 0]) },
-            { time_ms: 2000, leds: Array(20).fill([255, 0, 0]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 255, g: 0, b: 0 }) },
+            { timeMs: 500, leds: Array(20).fill({ r: 0, g: 0, b: 0 }) },
+            { timeMs: 1000, leds: Array(20).fill({ r: 255, g: 0, b: 0 }) },
+            { timeMs: 1500, leds: Array(20).fill({ r: 0, g: 0, b: 0 }) },
+            { timeMs: 2000, leds: Array(20).fill({ r: 255, g: 0, b: 0 }) },
           ],
-          audio: [
+          audioNotes: [
             {
-              start_ms: 0,
-              duration_ms: 200,
-              frequency: 880,
+              startMs: 0,
+              durationMs: 200,
+              frequencyHz: 880,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 1000,
-              duration_ms: 200,
-              frequency: 880,
+              startMs: 1000,
+              durationMs: 200,
+              frequencyHz: 880,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
           ],
         },
@@ -131,45 +127,45 @@ export class PatternLibrary {
       {
         id: "celebration_milestone_v1",
         animation: {
-          name: "celebration_milestone_v1",
-          duration_ms: 5000,
-          fps: 20,
+          
+          durationMs: 5000,
+          
           frames: [
-            { time_ms: 0, leds: Array(20).fill([255, 255, 0]) },
-            { time_ms: 1000, leds: Array(20).fill([255, 0, 255]) },
-            { time_ms: 2000, leds: Array(20).fill([0, 255, 255]) },
-            { time_ms: 3000, leds: Array(20).fill([255, 165, 0]) },
-            { time_ms: 4000, leds: Array(20).fill([255, 255, 255]) },
-            { time_ms: 5000, leds: Array(20).fill([0, 255, 0]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 255, g: 255, b: 0 }) },
+            { timeMs: 1000, leds: Array(20).fill({ r: 255, g: 0, b: 255 }) },
+            { timeMs: 2000, leds: Array(20).fill({ r: 0, g: 255, b: 255 }) },
+            { timeMs: 3000, leds: Array(20).fill({ r: 255, g: 165, b: 0 }) },
+            { timeMs: 4000, leds: Array(20).fill({ r: 255, g: 255, b: 255 }) },
+            { timeMs: 5000, leds: Array(20).fill({ r: 0, g: 255, b: 0 }) },
           ],
-          audio: [
+          audioNotes: [
             {
-              start_ms: 0,
-              duration_ms: 500,
-              frequency: 523,
+              startMs: 0,
+              durationMs: 500,
+              frequencyHz: 523,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 500,
-              duration_ms: 500,
-              frequency: 659,
+              startMs: 500,
+              durationMs: 500,
+              frequencyHz: 659,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 1000,
-              duration_ms: 500,
-              frequency: 784,
+              startMs: 1000,
+              durationMs: 500,
+              frequencyHz: 784,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 1500,
-              duration_ms: 1000,
-              frequency: 1047,
+              startMs: 1500,
+              durationMs: 1000,
+              frequencyHz: 1047,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
           ],
         },
@@ -193,21 +189,21 @@ export class PatternLibrary {
       {
         id: "default_notification_v1",
         animation: {
-          name: "default_notification_v1",
-          duration_ms: 1000,
-          fps: 20,
+          
+          durationMs: 1000,
+          
           frames: [
-            { time_ms: 0, leds: Array(20).fill([0, 0, 255]) },
-            { time_ms: 500, leds: Array(20).fill([0, 0, 128]) },
-            { time_ms: 1000, leds: Array(20).fill([0, 0, 0]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 0, g: 0, b: 255 }) },
+            { timeMs: 500, leds: Array(20).fill({ r: 0, g: 0, b: 128 }) },
+            { timeMs: 1000, leds: Array(20).fill({ r: 0, g: 0, b: 0 }) },
           ],
-          audio: [
+          audioNotes: [
             {
-              start_ms: 0,
-              duration_ms: 300,
-              frequency: 440,
+              startMs: 0,
+              durationMs: 300,
+              frequencyHz: 440,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
           ],
         },
@@ -224,29 +220,29 @@ export class PatternLibrary {
       {
         id: "warning_attention_v1",
         animation: {
-          name: "warning_attention_v1",
-          duration_ms: 2500,
-          fps: 20,
+          
+          durationMs: 2500,
+          
           frames: [
-            { time_ms: 0, leds: Array(20).fill([255, 165, 0]) },
-            { time_ms: 1000, leds: Array(20).fill([255, 255, 0]) },
-            { time_ms: 2000, leds: Array(20).fill([255, 165, 0]) },
-            { time_ms: 2500, leds: Array(20).fill([200, 100, 0]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 255, g: 165, b: 0 }) },
+            { timeMs: 1000, leds: Array(20).fill({ r: 255, g: 255, b: 0 }) },
+            { timeMs: 2000, leds: Array(20).fill({ r: 255, g: 165, b: 0 }) },
+            { timeMs: 2500, leds: Array(20).fill({ r: 200, g: 100, b: 0 }) },
           ],
-          audio: [
+          audioNotes: [
             {
-              start_ms: 0,
-              duration_ms: 400,
-              frequency: 698,
+              startMs: 0,
+              durationMs: 400,
+              frequencyHz: 698,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 1000,
-              duration_ms: 400,
-              frequency: 740,
+              startMs: 1000,
+              durationMs: 400,
+              frequencyHz: 740,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
           ],
         },
@@ -263,21 +259,21 @@ export class PatternLibrary {
       {
         id: "info_subtle_v1",
         animation: {
-          name: "info_subtle_v1",
-          duration_ms: 1500,
-          fps: 20,
+          
+          durationMs: 1500,
+          
           frames: [
-            { time_ms: 0, leds: Array(20).fill([0, 100, 200]) },
-            { time_ms: 750, leds: Array(20).fill([0, 150, 255]) },
-            { time_ms: 1500, leds: Array(20).fill([0, 50, 100]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 0, g: 100, b: 200 }) },
+            { timeMs: 750, leds: Array(20).fill({ r: 0, g: 150, b: 255 }) },
+            { timeMs: 1500, leds: Array(20).fill({ r: 0, g: 50, b: 100 }) },
           ],
-          audio: [
+          audioNotes: [
             {
-              start_ms: 0,
-              duration_ms: 200,
-              frequency: 349,
+              startMs: 0,
+              durationMs: 200,
+              frequencyHz: 349,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
           ],
         },
@@ -295,44 +291,44 @@ export class PatternLibrary {
       {
         id: "progress_building_v1",
         animation: {
-          name: "progress_building_v1",
-          duration_ms: 4000,
-          fps: 20,
+          
+          durationMs: 4000,
+          
           frames: [
-            { time_ms: 0, leds: Array(20).fill([100, 0, 100]) },
-            { time_ms: 1000, leds: Array(20).fill([150, 0, 150]) },
-            { time_ms: 2000, leds: Array(20).fill([200, 0, 200]) },
-            { time_ms: 3000, leds: Array(20).fill([255, 0, 255]) },
-            { time_ms: 4000, leds: Array(20).fill([150, 0, 150]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 100, g: 0, b: 100 }) },
+            { timeMs: 1000, leds: Array(20).fill({ r: 150, g: 0, b: 150 }) },
+            { timeMs: 2000, leds: Array(20).fill({ r: 200, g: 0, b: 200 }) },
+            { timeMs: 3000, leds: Array(20).fill({ r: 255, g: 0, b: 255 }) },
+            { timeMs: 4000, leds: Array(20).fill({ r: 150, g: 0, b: 150 }) },
           ],
-          audio: [
+          audioNotes: [
             {
-              start_ms: 0,
-              duration_ms: 100,
-              frequency: 293,
+              startMs: 0,
+              durationMs: 100,
+              frequencyHz: 293,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 1000,
-              duration_ms: 100,
-              frequency: 330,
+              startMs: 1000,
+              durationMs: 100,
+              frequencyHz: 330,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 2000,
-              duration_ms: 100,
-              frequency: 370,
+              startMs: 2000,
+              durationMs: 100,
+              frequencyHz: 370,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 3000,
-              duration_ms: 100,
-              frequency: 392,
+              startMs: 3000,
+              durationMs: 100,
+              frequencyHz: 392,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
           ],
         },
@@ -349,16 +345,16 @@ export class PatternLibrary {
       {
         id: "calm_waiting_v1",
         animation: {
-          name: "calm_waiting_v1",
-          duration_ms: 6000,
-          fps: 20,
+          
+          durationMs: 6000,
+          
           frames: [
-            { time_ms: 0, leds: Array(20).fill([0, 255, 255]) },
-            { time_ms: 2000, leds: Array(20).fill([0, 200, 200]) },
-            { time_ms: 4000, leds: Array(20).fill([0, 255, 255]) },
-            { time_ms: 6000, leds: Array(20).fill([0, 150, 150]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 0, g: 255, b: 255 }) },
+            { timeMs: 2000, leds: Array(20).fill({ r: 0, g: 200, b: 200 }) },
+            { timeMs: 4000, leds: Array(20).fill({ r: 0, g: 255, b: 255 }) },
+            { timeMs: 6000, leds: Array(20).fill({ r: 0, g: 150, b: 150 }) },
           ],
-          audio: [],
+          audioNotes: [],
         },
         metadata: {
           description: "Gentle cyan breathing pattern, no audio",
@@ -374,29 +370,29 @@ export class PatternLibrary {
       {
         id: "error_prominent_v1",
         animation: {
-          name: "error_prominent_v1",
-          duration_ms: 1800,
-          fps: 20,
+          
+          durationMs: 1800,
+          
           frames: [
-            { time_ms: 0, leds: Array(20).fill([255, 50, 50]) },
-            { time_ms: 600, leds: Array(20).fill([200, 0, 0]) },
-            { time_ms: 1200, leds: Array(20).fill([255, 50, 50]) },
-            { time_ms: 1800, leds: Array(20).fill([150, 0, 0]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 255, g: 50, b: 50 }) },
+            { timeMs: 600, leds: Array(20).fill({ r: 200, g: 0, b: 0 }) },
+            { timeMs: 1200, leds: Array(20).fill({ r: 255, g: 50, b: 50 }) },
+            { timeMs: 1800, leds: Array(20).fill({ r: 150, g: 0, b: 0 }) },
           ],
-          audio: [
+          audioNotes: [
             {
-              start_ms: 0,
-              duration_ms: 300,
-              frequency: 220,
+              startMs: 0,
+              durationMs: 300,
+              frequencyHz: 220,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 0,
-              duration_ms: 300,
-              frequency: 233,
+              startMs: 0,
+              durationMs: 300,
+              frequencyHz: 233,
               voice: 1,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
           ],
         },
@@ -413,44 +409,44 @@ export class PatternLibrary {
       {
         id: "success_dramatic_v1",
         animation: {
-          name: "success_dramatic_v1",
-          duration_ms: 3500,
-          fps: 20,
+          
+          durationMs: 3500,
+          
           frames: [
-            { time_ms: 0, leds: Array(20).fill([0, 0, 0]) },
-            { time_ms: 500, leds: Array(20).fill([0, 255, 0]) },
-            { time_ms: 1500, leds: Array(20).fill([255, 255, 255]) },
-            { time_ms: 2500, leds: Array(20).fill([0, 255, 0]) },
-            { time_ms: 3500, leds: Array(20).fill([0, 150, 0]) },
+            { timeMs: 0, leds: Array(20).fill({ r: 0, g: 0, b: 0 }) },
+            { timeMs: 500, leds: Array(20).fill({ r: 0, g: 255, b: 0 }) },
+            { timeMs: 1500, leds: Array(20).fill({ r: 255, g: 255, b: 255 }) },
+            { timeMs: 2500, leds: Array(20).fill({ r: 0, g: 255, b: 0 }) },
+            { timeMs: 3500, leds: Array(20).fill({ r: 0, g: 150, b: 0 }) },
           ],
-          audio: [
+          audioNotes: [
             {
-              start_ms: 500,
-              duration_ms: 200,
-              frequency: 523,
+              startMs: 500,
+              durationMs: 200,
+              frequencyHz: 523,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 700,
-              duration_ms: 200,
-              frequency: 659,
+              startMs: 700,
+              durationMs: 200,
+              frequencyHz: 659,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 900,
-              duration_ms: 200,
-              frequency: 784,
+              startMs: 900,
+              durationMs: 200,
+              frequencyHz: 784,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
             {
-              start_ms: 1100,
-              duration_ms: 400,
-              frequency: 1047,
+              startMs: 1100,
+              durationMs: 400,
+              frequencyHz: 1047,
               voice: 0,
-              waveform: "square",
+              waveform: WAVEFORMS.SQUARE,
             },
           ],
         },
