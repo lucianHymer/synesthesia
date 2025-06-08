@@ -3,6 +3,7 @@ import { promisify } from "util";
 import fs from "fs/promises";
 import type { PatternSelection } from "./types.js";
 import type { PatternLibrary } from "../patterns/PatternLibrary.js";
+import logger from "../utils/logger.js";
 
 const execAsync = promisify(exec);
 
@@ -18,8 +19,8 @@ export async function selectPattern(text: string): Promise<PatternSelection> {
     try {
       const response = await fetch(`${process.env.TEAM2_URL}/api/patterns`);
       cachedPatterns = await response.json() as any[];
-    } catch (error) {
-      console.warn("Failed to fetch patterns from Team 2, using fallback");
+    } catch {
+      logger.warn("Failed to fetch patterns from Team 2, using fallback");
       cachedPatterns = [];
     }
   }
@@ -50,8 +51,8 @@ Respond with just the pattern_id.`;
     setTimeout(() => patternCache.delete(text), 5 * 60 * 1000);
 
     return result;
-  } catch (error) {
-    console.warn("Claude selection failed, using fallback:", error);
+  } catch {
+    logger.warn("Claude selection failed, using fallback");
     const fallbackResult: PatternSelection = {
       pattern_id: text.toLowerCase().includes("error") || text.toLowerCase().includes("fail") ? "error_pulse" : "success_gentle",
       confidence: 0.5,
@@ -95,8 +96,8 @@ Respond with just the pattern_id.`;
     setTimeout(() => patternCache.delete(text), 5 * 60 * 1000);
 
     return result;
-  } catch (error) {
-    console.warn("Claude selection failed, using fallback:", error);
+  } catch {
+    logger.warn("Claude selection failed, using fallback");
     const fallbackResult: PatternSelection = {
       pattern_id: text.toLowerCase().includes("error") || text.toLowerCase().includes("fail") ? "error_prominent_v1" : "gentle_success_v3",
       confidence: 0.5,

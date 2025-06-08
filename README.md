@@ -63,7 +63,7 @@ Combined service providing REST API, device management, pattern library, and Cla
 # Send a notification (MCP integration)
 curl -X POST http://localhost:3000/api/notify \
   -H "Content-Type: application/json" \
-  -d '{"pattern_id": "gentle_success_v3"}'
+  -d '{"pattern_id": "gentle_success_v1"}'
 
 # List all patterns
 curl http://localhost:3000/api/patterns
@@ -76,9 +76,9 @@ curl http://localhost:3000/health
 
 The service includes 10+ pre-loaded patterns optimized for development workflows:
 
-1. **gentle_success_v3** - Soft green fade with chimes (test passes, builds)
+1. **gentle_success_v1** - Soft green fade with chimes (test passes, builds)
 2. **urgent_alert_v1** - Bright red flashing (critical errors, production issues)
-3. **celebration_milestone_v2** - Rainbow colors with victory melody (releases, major achievements)
+3. **celebration_milestone_v1** - Rainbow colors with victory melody (releases, major achievements)
 4. **default_notification_v1** - Simple blue fade (fallback pattern)
 5. **warning_attention_v1** - Orange warning glow (warnings, deprecations)
 6. **info_subtle_v1** - Gentle blue pulse (info notifications)
@@ -112,4 +112,10 @@ The notification service includes Claude Code MCP integration for intelligent pa
 
 ## License
 
-MIT
+**Dual Licensed**: AGPL v3 (open source) + Commercial License
+
+- **Open Source**: Free under AGPL v3 for open source projects
+- **Commercial**: Separate license available for proprietary/commercial use
+- **Contact**: See [LICENSE](LICENSE) for commercial licensing details
+
+AGPL v3 requires derivative works to be open source and provides source code access for network services.

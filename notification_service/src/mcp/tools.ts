@@ -1,6 +1,6 @@
 import { collectContext } from "./context.js";
 import { selectPatternLocal } from "./patterns.js";
-import type { UpdateStatusArgs, NotificationResponse } from "./types.js";
+import type { UpdateStatusArgs } from "./types.js";
 import type { NotificationService } from "../services/NotificationService.js";
 import type { PatternLibrary } from "../patterns/PatternLibrary.js";
 

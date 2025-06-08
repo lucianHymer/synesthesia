@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
 import { PlayCommand, PlayResponse } from '../types';
+import logger from '../utils/logger';
 
 export class DeviceConnection {
   private ws?: WebSocket;
@@ -19,26 +20,26 @@ export class DeviceConnection {
         this.ws = new WebSocket(`ws://${this.deviceIP}:80`);
         
         this.ws.on('open', () => {
-          console.log(`Connected to device at ${this.deviceIP}`);
+          logger.info(`Connected to device at ${this.deviceIP}`);
           this.isConnected = true;
           this.reconnectAttempts = 0;
           resolve(true);
         });
 
         this.ws.on('close', () => {
-          console.log(`Disconnected from device at ${this.deviceIP}`);
+          logger.info(`Disconnected from device at ${this.deviceIP}`);
           this.isConnected = false;
           this.attemptReconnect();
         });
 
         this.ws.on('error', (error) => {
-          console.error(`WebSocket error for ${this.deviceIP}:`, error);
+          logger.error(`WebSocket error for ${this.deviceIP}:`, error);
           this.isConnected = false;
           resolve(false);
         });
 
       } catch (error) {
-        console.error(`Failed to connect to ${this.deviceIP}:`, error);
+        logger.error(`Failed to connect to ${this.deviceIP}:`, error);
         resolve(false);
       }
     });
@@ -69,7 +70,7 @@ export class DeviceConnection {
         try {
           const response: PlayResponse = JSON.parse(data.toString());
           resolve(response);
-        } catch (error) {
+        } catch {
           reject(new Error('Invalid response format'));
         }
       });
@@ -97,18 +98,18 @@ export class DeviceConnection {
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log(`Max reconnection attempts reached for ${this.deviceIP}`);
+      logger.warn(`Max reconnection attempts reached for ${this.deviceIP}`);
       return;
     }
 
     const timeout = this.reconnectTimeouts[this.reconnectAttempts] || 30000;
-    console.log(`Attempting to reconnect to ${this.deviceIP} in ${timeout}ms...`);
+    logger.info(`Attempting to reconnect to ${this.deviceIP} in ${timeout}ms...`);
 
     setTimeout(async () => {
       this.reconnectAttempts++;
       const connected = await this.connect();
       if (!connected) {
-        console.log(`Reconnection attempt ${this.reconnectAttempts} failed for ${this.deviceIP}`);
+        logger.warn(`Reconnection attempt ${this.reconnectAttempts} failed for ${this.deviceIP}`);
       }
     }, timeout);
   }

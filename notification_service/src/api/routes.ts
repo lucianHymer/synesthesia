@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { NotificationService } from '../services/NotificationService';
 import { PatternLibrary } from '../patterns/PatternLibrary';
 import { NotificationRequest, PatternWithMetadata } from '../types';
+import logger from '../utils/logger';
 
 export function createRoutes(notificationService: NotificationService, patternLibrary: PatternLibrary): Router {
   const router = Router();
@@ -20,7 +21,7 @@ export function createRoutes(notificationService: NotificationService, patternLi
       const response = await notificationService.handleNotification(request);
       res.json(response);
     } catch (error) {
-      console.error('Notification error:', error);
+      logger.error('Notification error:', error);
       res.status(500).json({ 
         status: 'error', 
         error: 'internal_server_error' 
@@ -33,7 +34,7 @@ export function createRoutes(notificationService: NotificationService, patternLi
       const patterns = patternLibrary.getAllPatterns();
       res.json(patterns);
     } catch (error) {
-      console.error('Get patterns error:', error);
+      logger.error('Get patterns error:', error);
       res.status(500).json({ error: 'internal_server_error' });
     }
   });
@@ -48,7 +49,7 @@ export function createRoutes(notificationService: NotificationService, patternLi
       
       res.json(pattern);
     } catch (error) {
-      console.error('Get pattern error:', error);
+      logger.error('Get pattern error:', error);
       res.status(500).json({ error: 'internal_server_error' });
     }
   });
@@ -75,7 +76,7 @@ export function createRoutes(notificationService: NotificationService, patternLi
       patternLibrary.addPattern(pattern);
       res.status(201).json({ id: pattern.metadata.id });
     } catch (error) {
-      console.error('Create pattern error:', error);
+      logger.error('Create pattern error:', error);
       res.status(500).json({ error: 'internal_server_error' });
     }
   });
@@ -105,7 +106,7 @@ export function createRoutes(notificationService: NotificationService, patternLi
       
       res.json({ success: true });
     } catch (error) {
-      console.error('Update pattern error:', error);
+      logger.error('Update pattern error:', error);
       res.status(500).json({ error: 'internal_server_error' });
     }
   });
@@ -120,7 +121,7 @@ export function createRoutes(notificationService: NotificationService, patternLi
       
       res.json({ success: true });
     } catch (error) {
-      console.error('Delete pattern error:', error);
+      logger.error('Delete pattern error:', error);
       res.status(500).json({ error: 'internal_server_error' });
     }
   });
@@ -138,7 +139,7 @@ export function createRoutes(notificationService: NotificationService, patternLi
       
       res.json(patterns);
     } catch (error) {
-      console.error('Search patterns error:', error);
+      logger.error('Search patterns error:', error);
       res.status(500).json({ error: 'internal_server_error' });
     }
   });

@@ -66,12 +66,14 @@ struct AnimationHeader {
 }
 
 #[repr(C, packed)]
+#[allow(dead_code)]
 struct BinaryFrame {
     time_ms: u16,
     leds: [[u8; 3]; 20],
 }
 
 #[repr(C, packed)]
+#[allow(dead_code)]
 struct BinaryAudioNote {
     start_ms: u16,
     duration_ms: u16,

@@ -1,5 +1,6 @@
 import { DeviceConnection } from './DeviceConnection';
 import { PlayResponse } from '../types';
+import logger from '../utils/logger';
 
 export class DeviceManager {
   private devices: Map<string, DeviceConnection> = new Map();
@@ -16,11 +17,11 @@ export class DeviceManager {
     
     if (connected) {
       this.devices.set(deviceIP, device);
-      console.log(`Device ${deviceIP} added to registry`);
+      logger.info(`Device ${deviceIP} added to registry`);
       return true;
     }
     
-    console.error(`Failed to add device ${deviceIP}`);
+    logger.error(`Failed to add device ${deviceIP}`);
     return false;
   }
 
@@ -29,7 +30,7 @@ export class DeviceManager {
     if (device) {
       device.disconnect();
       this.devices.delete(deviceIP);
-      console.log(`Device ${deviceIP} removed from registry`);
+      logger.info(`Device ${deviceIP} removed from registry`);
       return true;
     }
     return false;
@@ -48,7 +49,7 @@ export class DeviceManager {
     try {
       return await device.sendAnimation(encodedData);
     } catch (error) {
-      console.error(`Failed to send to device ${deviceIP}:`, error);
+      logger.error(`Failed to send to device ${deviceIP}:`, error);
       return this.queueMessage(deviceIP, encodedData);
     }
   }
@@ -78,7 +79,7 @@ export class DeviceManager {
   private async queueMessage(deviceIP: string, data: Uint8Array): Promise<PlayResponse> {
     return new Promise((resolve, reject) => {
       this.messageQueue.push({ deviceIP, data, resolve, reject });
-      console.log(`Message queued for device ${deviceIP} (queue length: ${this.messageQueue.length})`);
+      logger.info(`Message queued for device ${deviceIP} (queue length: ${this.messageQueue.length})`);
       
       if (!this.isProcessingQueue) {
         this.processQueue();

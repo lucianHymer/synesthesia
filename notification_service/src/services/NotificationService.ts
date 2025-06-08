@@ -2,6 +2,7 @@ import { PatternLibrary } from '../patterns/PatternLibrary';
 import { DeviceManager } from '../device/DeviceManager';
 import { encodeAnimation } from '../encoder/encoderIntegration';
 import { NotificationRequest, NotificationResponse } from '../types';
+import logger from '../utils/logger';
 
 export class NotificationService {
   private patternLibrary: PatternLibrary;
@@ -22,7 +23,7 @@ export class NotificationService {
       let patternUsed = request.pattern_id;
 
       if (!pattern) {
-        console.warn(`Pattern not found: ${request.pattern_id}, using fallback`);
+        logger.warn(`Pattern not found: ${request.pattern_id}, using fallback`);
         const fallbackId = this.patternLibrary.getFallbackPattern();
         pattern = this.patternLibrary.getPattern(fallbackId);
         patternUsed = fallbackId;
@@ -64,7 +65,7 @@ export class NotificationService {
         };
 
       } catch (deviceError) {
-        console.error('Device communication error:', deviceError);
+        logger.error('Device communication error:', deviceError);
         return {
           status: "error",
           error: "device_offline"
@@ -72,16 +73,16 @@ export class NotificationService {
       }
 
     } catch (encodingError) {
-      console.error('Encoding error:', encodingError);
+      logger.error('Encoding error:', encodingError);
       return {
         status: "error",
-        error: "encoding_error" as any
+        error: "encoding_error"
       };
     }
   }
 
   selectFallbackPattern(patternId: string): string {
-    console.warn(`Pattern not found: ${patternId}, using default`);
+    logger.warn(`Pattern not found: ${patternId}, using default`);
     return this.patternLibrary.getFallbackPattern();
   }
 }

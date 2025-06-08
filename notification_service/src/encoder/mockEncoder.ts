@@ -1,11 +1,13 @@
 import { deflateSync, inflateSync } from 'zlib';
 import { Animation } from '../types';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
 interface BinaryFrame {
   time_ms: number;
   leds: number[][];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
 interface BinaryAudioNote {
   start_ms: number;
   duration_ms: number;

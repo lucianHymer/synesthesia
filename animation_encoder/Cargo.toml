@@ -2,6 +2,11 @@
 name = "animation_encoder"
 version = "0.1.0"
 edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "Binary encoder for LED animations targeting ESP32 devices"
+repository = "https://github.com/yourname/synesthesia"
+keywords = ["led", "animation", "esp32", "encoding", "embedded"]
+categories = ["embedded", "multimedia", "encoding"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
